@@ -3,6 +3,7 @@ import io
 import re
 import json
 import time
+import os
 from datetime import datetime
 from pathlib import Path
 from functools import wraps
@@ -10,6 +11,24 @@ from flask import Flask, request, jsonify, send_from_directory, session, redirec
 from flask_cors import CORS
 import pdfplumber
 from openai import OpenAI
+
+
+def load_local_env():
+    env_path = Path(__file__).with_name(".env")
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+load_local_env()
 import config
 
 app = Flask(__name__)
@@ -207,7 +226,7 @@ def call_llm(prompt):
                     continue
                 raise RuntimeError("OpenRouter 返回了异常或不完整响应，请稍后重试。如果反复出现，可能是输入内容过长或上游服务临时异常。")
             if "401" in error_msg or "authentication" in error_msg or "api key" in error_msg:
-                raise RuntimeError("OpenRouter API Key 无效，请检查 config.py 中的 API_KEY。")
+                raise RuntimeError("OpenRouter API Key 无效或未配置，请检查环境变量 OPENROUTER_API_KEY。")
             if "quota" in error_msg or "credit" in error_msg or "billing" in error_msg or "insufficient" in error_msg:
                 raise RuntimeError("OpenRouter 账户额度不足或计费异常，请检查 OpenRouter 余额。")
             if "rate" in error_msg or "429" in error_msg:

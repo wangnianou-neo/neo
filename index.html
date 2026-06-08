@@ -65,9 +65,115 @@
   .toolbar button:disabled { opacity: 0.5; cursor: not-allowed; }
   .loading { display: flex; align-items: center; gap: 10px; color: #3498db; padding: 20px; font-size: 14px; }
   .spinner { width: 20px; height: 20px; border: 3px solid #ecf0f1; border-top-color: #3498db; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .pending-card { display: flex; align-items: center; gap: 14px; padding: 22px; border: 1px dashed #ccd6e2; border-radius: 14px; background: #f8fafc; color: #5d6b7a; }
+  .pending-icon { width: 34px; height: 34px; border-radius: 50%; background: #edf2f7; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .pending-title { font-weight: 700; color: #2c3e50; margin-bottom: 3px; }
+  .pending-desc { font-size: 13px; line-height: 1.6; }
+  .loading-card { border-style: solid; border-color: #b9daf3; background: linear-gradient(90deg, #f8fbff 0%, #eef7ff 50%, #f8fbff 100%); background-size: 220% 100%; animation: shimmer 1.4s ease-in-out infinite; color: #2874a6; }
+  .loading-card .pending-icon { background: #e8f4fd; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes shimmer { 0% { background-position: 0% 0; } 100% { background-position: 220% 0; } }
   .error { color: #e74c3c; padding: 12px; background: #fdf2f0; border-radius: 6px; margin-top: 12px; font-size: 13px; border-left: 4px solid #e74c3c; }
   .step-hint { font-size: 12px; color: #95a5a6; margin-top: 4px; text-align: center; }
+  /* 流程进度条 */
+  .stepper { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; background: white; border-radius: 12px; padding: 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); flex-wrap: wrap; }
+  .stepper-item { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 140px; }
+  .stepper-dot { width: 26px; height: 26px; border-radius: 50%; background: #e1e6ec; color: #8a97a6; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; transition: all .25s; }
+  .stepper-label { font-size: 13px; color: #8a97a6; font-weight: 500; }
+  .stepper-label small { display: block; font-size: 11px; font-weight: 500; margin-top: 1px; color: #a0a9b4; }
+  .stepper-line { flex: 1; height: 2px; background: #e1e6ec; min-width: 12px; }
+  .stepper-item.active .stepper-dot { background: #3498db; color: #fff; box-shadow: 0 0 0 4px rgba(52,152,219,0.15); }
+  .stepper-item.active .stepper-label { color: #2c3e50; font-weight: 700; }
+  .stepper-item.done .stepper-dot { background: #27ae60; color: #fff; }
+  .stepper-item.done .stepper-label { color: #27ae60; }
+  .stepper-item.running .stepper-dot { background: #3498db; color: transparent; position: relative; box-shadow: 0 0 0 4px rgba(52,152,219,0.15); }
+  .stepper-item.running .stepper-dot::after { content: ""; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.55); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; position: absolute; }
+  .stepper-item.running .stepper-label, .stepper-item.running .stepper-label small { color: #3498db; font-weight: 700; }
+  .stepper-item.pending .stepper-dot { background: #eef2f6; color: #a0a9b4; }
+  .stepper-item.error .stepper-dot { background: #e74c3c; color: #fff; }
+  .stepper-item.error .stepper-label, .stepper-item.error .stepper-label small { color: #e74c3c; }
+  /* 决策卡 */
+  .decision-card { border-radius: 16px; padding: 22px 24px; margin-bottom: 22px; color: #fff; box-shadow: 0 10px 28px rgba(0,0,0,0.12); }
+  .decision-card.level-strong { background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%); }
+  .decision-card.level-ok { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+  .decision-card.level-caution { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+  .decision-card.level-reject { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+  .decision-card .dc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .decision-card .dc-title { font-size: 13px; opacity: .9; letter-spacing: 1px; margin-bottom: 4px; }
+  .decision-card .dc-name { font-size: 22px; font-weight: 800; }
+  .decision-card .dc-position { font-size: 13px; opacity: .92; margin-top: 2px; }
+  .decision-card .dc-badge { background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.45); border-radius: 999px; padding: 8px 18px; font-size: 16px; font-weight: 800; white-space: nowrap; }
+  .decision-card .dc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-top: 18px; }
+  .decision-card .dc-cell .k { font-size: 12px; opacity: .85; margin-bottom: 2px; }
+  .decision-card .dc-cell .v { font-size: 14px; font-weight: 600; line-height: 1.5; }
+  @media (max-width: 720px) { .decision-card .dc-grid { grid-template-columns: 1fr; } }
+  /* 雷达图区 */
+  .scorecard-viz { display: flex; gap: 24px; align-items: center; background: #f8fafc; border: 1px solid #eef2f6; border-radius: 16px; padding: 20px; margin-bottom: 22px; flex-wrap: wrap; }
+  .radar-wrap { flex: 0 0 auto; }
+  .overall-gauge { flex: 1; min-width: 180px; text-align: center; }
+  .overall-gauge .og-score { font-size: 46px; font-weight: 800; line-height: 1; }
+  .overall-gauge .og-max { font-size: 18px; color: #95a5a6; font-weight: 600; }
+  .overall-gauge .og-label { font-size: 13px; color: #7f8c8d; margin-top: 6px; }
+  .overall-gauge .og-bar { height: 10px; border-radius: 999px; background: #e6ebf0; margin-top: 12px; overflow: hidden; }
+  .overall-gauge .og-fill { height: 100%; border-radius: 999px; transition: width .4s; }
+  /* 证据强度徽章 & 标记着色 */
+  .ev-badge { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .ev-strong { background: #e8f7ee; color: #1e8449; border: 1px solid #b6e2c6; }
+  .ev-mid { background: #fef6e7; color: #b9770e; border: 1px solid #f6dca0; }
+  .ev-weak { background: #fdecea; color: #c0392b; border: 1px solid #f4c4bd; }
+  .ev-pending { background: #eef1f4; color: #5d6b7a; border: 1px solid #d6dde4; }
+  .markdown .flag-line { color: #c0392b; font-weight: 600; }
+  .markdown .pass-mark { color: #27ae60; font-weight: 700; }
+  .markdown .fail-mark { color: #e74c3c; font-weight: 700; }
+  .decision-card, .ev-badge, .overall-gauge .og-bar, .overall-gauge .og-fill, .scorecard-viz { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* 权重滑条 */
+  .weight-sliders { background: #f8fafc; border: 1px solid #eef2f6; border-radius: 10px; padding: 12px 14px; }
+  .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .weight-row:last-child { margin-bottom: 0; }
+  .weight-row .wl { width: 96px; font-size: 12px; color: #4a5568; flex-shrink: 0; }
+  .weight-row input[type="range"] { flex: 1; accent-color: #3498db; }
+  .weight-row .wv { width: 42px; text-align: right; font-size: 13px; font-weight: 700; color: #2c3e50; }
+  .weight-total { font-size: 12px; margin-top: 8px; text-align: right; color: #7f8c8d; }
+  .weight-total.bad { color: #e74c3c; font-weight: 700; }
+  .weight-total.ok { color: #27ae60; font-weight: 700; }
+  /* 工具按钮行 */
+  .action-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .action-row button { padding: 8px 14px; background: white; border: 1px solid #dde2e8; border-radius: 8px; cursor: pointer; font-size: 13px; color: #2c3e50; }
+  .action-row button:hover { border-color: #3498db; color: #3498db; }
+  /* 弹窗 */
+  .modal-mask { display: none; position: fixed; inset: 0; background: rgba(20,28,38,0.45); z-index: 50; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+  .modal-mask.open { display: flex; }
+  .modal { background: white; border-radius: 16px; width: 100%; max-width: 1000px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid #eef2f6; }
+  .modal-head h3 { font-size: 17px; }
+  .modal-close { border: none; background: #f0f3f6; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 16px; color: #5d6b7a; }
+  .modal-body { padding: 20px 22px; }
+  /* 历史记录 */
+  .hist-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #eef2f6; border-radius: 10px; margin-bottom: 10px; }
+  .hist-item .hi-main { flex: 1; min-width: 0; }
+  .hist-item .hi-name { font-weight: 700; font-size: 15px; }
+  .hist-item .hi-sub { font-size: 12px; color: #8a97a6; margin-top: 2px; }
+  .hist-item .hi-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .hist-item .hi-actions button { padding: 6px 12px; border-radius: 7px; border: 1px solid #dde2e8; background: white; cursor: pointer; font-size: 12px; }
+  .hist-item .hi-actions .del { color: #e74c3c; border-color: #f4c4bd; }
+  .level-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; }
+  .pill-strong { background: #1e8449; } .pill-ok { background: #27ae60; } .pill-caution { background: #e67e22; } .pill-reject { background: #c0392b; }
+  .hist-empty { color: #95a5a6; text-align: center; padding: 30px; }
+  /* 对比表 */
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cmp-table th, .cmp-table td { border: 1px solid #e3e8ee; padding: 9px 12px; text-align: left; vertical-align: top; }
+  .cmp-table th { background: #f5f7fa; }
+  .cmp-table td.metric { background: #fafbfc; font-weight: 600; color: #4a5568; white-space: nowrap; }
+  .cmp-best { background: #eafaf0 !important; }
+  .cmp-select-bar { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .cmp-pos-group { border: 1px solid #eef2f6; border-radius: 10px; padding: 12px; }
+  .cmp-pos-group h4 { font-size: 13px; margin-bottom: 8px; color: #2c3e50; }
+  .cmp-pos-group label { display: block; font-size: 13px; margin-bottom: 5px; cursor: pointer; }
+  /* CEO 批注 */
+  .ceo-note { margin-top: 24px; border: 1px solid #f0d9a8; background: #fffdf6; border-radius: 12px; padding: 16px; }
+  .ceo-note h3 { font-size: 15px; margin-bottom: 8px; color: #9a6a00; }
+  .ceo-note textarea { width: 100%; border: 1px solid #ecdcb0; border-radius: 8px; padding: 10px; font-size: 14px; font-family: inherit; min-height: 80px; resize: vertical; background: white; }
+  .ceo-note .cn-saved { font-size: 12px; color: #27ae60; margin-top: 6px; height: 16px; }
   .print-area { display: none; }
   .print-report { page-break-after: always; break-after: page; }
   .print-report:last-child { page-break-after: auto; break-after: auto; }
@@ -100,7 +206,19 @@
       <div class="field"><label>简历 PDF</label><label class="upload-box" id="uploadBox"><input type="file" id="resumeFile" accept=".pdf"><div class="upload-icon">📄</div><div class="upload-text" id="uploadText">点击或拖拽 PDF 到这里</div></label></div>
       <div class="field"><label>岗位描述输入</label><textarea id="jdText" rows="6" placeholder="用自然语言描述这个岗位即可，例如：销售负责人，负责抖音渠道增长，带 10 人团队，重视结果和抗压..."></textarea><button class="btn" id="generateJdBtn" type="button">✨ 生成正式 JD</button></div>
       <div class="field"><label>AI 生成的正式 JD（自动生成，可编辑）</label><textarea id="formalJdText" rows="8" placeholder="点击开始分析后会先自动生成正式 JD，后续分析会使用这里的内容。"></textarea></div>
-      <div class="field"><label>岗位权重（可选）</label><textarea id="weightsText" rows="4" placeholder="如：M 40%，A 25%，I 15%，R 10%，O 10%；一票否决：诚信问题、无法接受创业强度..."></textarea></div>
+      <div class="field"><label>岗位标准库（选岗位自动加载权重）</label><select id="positionSelect"><option value="">请选择岗位（可选）</option></select><div class="step-hint" id="positionHint" style="text-align:left;"></div></div>
+      <div class="field"><label>AMIRO 权重（拖动滑条，自动归一到 100%）</label>
+        <div class="weight-sliders" id="weightSliders">
+          <div class="weight-row"><span class="wl">M 操盘掌控力</span><input type="range" min="0" max="100" value="20" data-dim="M"><span class="wv" data-dim-v="M">20%</span></div>
+          <div class="weight-row"><span class="wl">A 成就动机</span><input type="range" min="0" max="100" value="20" data-dim="A"><span class="wv" data-dim-v="A">20%</span></div>
+          <div class="weight-row"><span class="wl">I 智力学习力</span><input type="range" min="0" max="100" value="20" data-dim="I"><span class="wv" data-dim-v="I">20%</span></div>
+          <div class="weight-row"><span class="wl">R 韧性价值观</span><input type="range" min="0" max="100" value="20" data-dim="R"><span class="wv" data-dim-v="R">20%</span></div>
+          <div class="weight-row"><span class="wl">O 组织适配度</span><input type="range" min="0" max="100" value="20" data-dim="O"><span class="wv" data-dim-v="O">20%</span></div>
+          <div class="weight-total" id="weightTotal">合计 100%</div>
+        </div>
+      </div>
+      <div class="field"><label>一票否决项（可选）</label><input type="text" id="vetoText" placeholder="如：诚信问题、无法接受创业强度..."></div>
+      <div class="field"><label>权重汇总（自动生成，可编辑）</label><textarea id="weightsText" rows="3" placeholder="拖动上方滑条会自动生成；也可手动覆盖。"></textarea></div>
       <div class="talent-reminder"><div class="talent-reminder-title">🧊 人才冰山提醒</div><div class="talent-reminder-text">经验、学历、成功标签只是<strong>冰山上</strong>的信息。面试中更要验证<strong>冰山下</strong>的动机、价值观、岗位胜任力、学习力、韧性和长期潜力。</div></div>
       <div class="field"><label>部门风格</label><select id="departmentSelect"><option value="">请选择部门（可选）</option></select></div>
       <div class="field"><label>部门风格说明（可编辑）</label><textarea id="departmentStyle" rows="6" placeholder="选择部门后会自动填入参考说明，也可手动补充该部门的管理者风格、团队节奏、协作与压力环境..."></textarea></div>
@@ -113,6 +231,19 @@
       <div id="errorBox"></div>
     </div>
     <div class="output-panel">
+      <div class="action-row">
+        <button id="historyBtn" type="button">📚 历史记录</button>
+        <button id="compareBtn" type="button">📊 候选人对比</button>
+      </div>
+      <div class="stepper" id="stepper">
+        <div class="stepper-item active" data-step="resume"><div class="stepper-dot">1</div><div class="stepper-label">上传简历</div></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item" data-step="pre"><div class="stepper-dot">2</div><div class="stepper-label">作战图</div></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item" data-step="plan"><div class="stepper-dot">3</div><div class="stepper-label">追问卡</div></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item" data-step="eval"><div class="stepper-dot">4</div><div class="stepper-label">面试后评判</div></div>
+      </div>
       <div class="tabs">
         <div class="tab active" data-tab="resume">① 简历解析</div>
         <div class="tab" data-tab="pre">② 面试前作战图</div>
@@ -124,11 +255,25 @@
     </div>
   </div>
 </div>
+<div class="modal-mask" id="historyModal">
+  <div class="modal">
+    <div class="modal-head"><h3>📚 候选人历史记录</h3><button class="modal-close" data-close>✕</button></div>
+    <div class="modal-body" id="historyBody"></div>
+  </div>
+</div>
+<div class="modal-mask" id="compareModal">
+  <div class="modal">
+    <div class="modal-head"><h3>📊 同岗位候选人对比</h3><button class="modal-close" data-close>✕</button></div>
+    <div class="modal-body" id="compareBody"></div>
+  </div>
+</div>
 <div class="print-area" id="printArea"></div>
 <script>
   const results = { resume: "", pre: "", plan: "", eval: "" };
   const titles = { resume: "01_简历.md", pre: "02_面试前作战图.md", plan: "03_面试追问卡.md", eval: "04_面试后评判.md" };
   const pdfTitles = { resume: "简历分析", pre: "面试前作战图", plan: "面试追问卡", eval: "面试后评判" };
+  const stepNames = { resume: "简历解析", pre: "面试前作战图", plan: "面试追问卡", eval: "面试后评判" };
+  const stepState = { resume: "idle", pre: "idle", plan: "idle", eval: "idle" };
   let currentTab = "resume";
   let currentDate = "";
   const fileInput = document.getElementById("resumeFile");
@@ -186,6 +331,63 @@
     const preset = DEPARTMENT_PRESETS[departmentSelect.value];
     if (preset) departmentStyle.value = preset.style;
   });
+
+  // ===== C: 岗位标准库 + 权重滑条 =====
+  const DIM_LABELS = { M: "M 操盘掌控力", A: "A 成就动机", I: "I 智力学习力", R: "R 韧性价值观", O: "O 组织适配度" };
+  const POSITION_PRESETS = {
+    sales_lead: { name: "销售负责人", weights: { M: 35, A: 30, I: 10, R: 15, O: 10 }, veto: "诚信问题、无法接受强结果导向与高压节奏", competency: "目标拆解、结果 Owner、团队 push、转化闭环、抗压韧性" },
+    project_manager: { name: "项目经理（ToB）", weights: { M: 35, A: 20, I: 20, R: 10, O: 15 }, veto: "简历造假、无法独立操盘、缺乏 Owner 意识", competency: "需求澄清、跨部门推动、节点管理、客户沟通、结果交付" },
+    product_manager: { name: "产品经理", weights: { M: 25, A: 20, I: 30, R: 10, O: 15 }, veto: "无用户洞察、无法独立推动版本", competency: "需求洞察、优先级判断、数据驱动、跨团队对齐、结构化思维" },
+    engineer: { name: "研发工程师", weights: { M: 20, A: 15, I: 40, R: 10, O: 15 }, veto: "技术造假、无法解决真实问题", competency: "技术硬实力、工程素养、学习力、复杂问题拆解、协作" },
+    operations: { name: "运营", weights: { M: 25, A: 20, I: 20, R: 15, O: 20 }, veto: "执行力差、数据不敏感", competency: "执行力、数据复盘、活动落地、SOP 闭环、多任务并行" },
+    marketing: { name: "市场/品牌", weights: { M: 20, A: 25, I: 25, R: 10, O: 20 }, veto: "无内容敏感度、无数据意识", competency: "内容敏感度、趋势捕捉、传播力、数据复盘、跨部门协同" },
+    hr: { name: "人力/HR", weights: { M: 20, A: 15, I: 20, R: 20, O: 25 }, veto: "价值观不正、保密性差", competency: "判断力、沟通力、价值观、组织敏感度、冲突处理" },
+    finance: { name: "财务/法务", weights: { M: 20, A: 10, I: 30, R: 20, O: 20 }, veto: "合规意识弱、原则性差", competency: "专业严谨、风险意识、原则性、数据准确、业务沟通" },
+    general_manager: { name: "业务负责人/GM", weights: { M: 40, A: 25, I: 15, R: 10, O: 10 }, veto: "无操盘经验、无法担责、价值观问题", competency: "战略落地、资源整合、团队搭建、结果担当、抗不确定性" }
+  };
+  const positionSelect = document.getElementById("positionSelect");
+  const positionHint = document.getElementById("positionHint");
+  const vetoText = document.getElementById("vetoText");
+  const weightsText = document.getElementById("weightsText");
+  const weightTotal = document.getElementById("weightTotal");
+  const sliders = Array.from(document.querySelectorAll("#weightSliders input[type=range]"));
+  Object.entries(POSITION_PRESETS).forEach(([key, val]) => {
+    const opt = document.createElement("option");
+    opt.value = key; opt.textContent = val.name;
+    positionSelect.appendChild(opt);
+  });
+  function normalizedWeights() {
+    const raw = {}; let sum = 0;
+    sliders.forEach(s => { const v = Number(s.value) || 0; raw[s.dataset.dim] = v; sum += v; });
+    const out = {};
+    if (sum === 0) { sliders.forEach(s => out[s.dataset.dim] = 20); return out; }
+    let acc = 0; const dims = sliders.map(s => s.dataset.dim);
+    dims.forEach((d, i) => {
+      if (i === dims.length - 1) { out[d] = 100 - acc; }
+      else { out[d] = Math.round(raw[d] / sum * 100); acc += out[d]; }
+    });
+    return out;
+  }
+  function syncWeightsText() {
+    const w = normalizedWeights();
+    sliders.forEach(s => { document.querySelector(`[data-dim-v="${s.dataset.dim}"]`).textContent = w[s.dataset.dim] + "%"; });
+    weightTotal.textContent = "合计 100%";
+    weightTotal.className = "weight-total ok";
+    const parts = sliders.map(s => `${s.dataset.dim} ${w[s.dataset.dim]}%`).join("，");
+    const veto = vetoText.value.trim();
+    weightsText.value = parts + (veto ? `；一票否决：${veto}` : "");
+  }
+  sliders.forEach(s => s.addEventListener("input", syncWeightsText));
+  vetoText.addEventListener("input", syncWeightsText);
+  positionSelect.addEventListener("change", () => {
+    const preset = POSITION_PRESETS[positionSelect.value];
+    if (!preset) { positionHint.textContent = ""; return; }
+    sliders.forEach(s => { s.value = preset.weights[s.dataset.dim] != null ? preset.weights[s.dataset.dim] : 0; });
+    vetoText.value = preset.veto || "";
+    positionHint.innerHTML = `核心胜任力：<strong>${preset.competency}</strong>`;
+    syncWeightsText();
+  });
+  syncWeightsText();
   inputPanel.addEventListener("wheel", (event) => {
     const atTop = inputPanel.scrollTop === 0;
     const atBottom = inputPanel.scrollTop + inputPanel.clientHeight >= inputPanel.scrollHeight - 1;
@@ -244,24 +446,179 @@
       if (data.current_date) currentDate = data.current_date;
     })
     .catch(() => {});
+  const SCORECARD_RE = /```scorecard\s*([\s\S]*?)```/;
+  function parseScorecard(md) {
+    const match = md.match(SCORECARD_RE);
+    if (!match) return { data: null, body: md };
+    let data = null;
+    try { data = JSON.parse(match[1].trim()); } catch (e) { data = null; }
+    return { data, body: md.replace(SCORECARD_RE, "").trim() };
+  }
+  function decisionLevelClass(level) {
+    const t = (level || "").trim();
+    if (t.includes("强烈推荐")) return "level-strong";
+    if (t.includes("不推荐")) return "level-reject";
+    if (t.includes("谨慎")) return "level-caution";
+    if (t.includes("可录用") || t.includes("录用")) return "level-ok";
+    return "level-caution";
+  }
+  function scoreColor(score, max) {
+    const r = score / max;
+    if (r >= 0.7) return "#27ae60";
+    if (r >= 0.45) return "#f39c12";
+    return "#e74c3c";
+  }
+  function buildRadarSvg(dimensions) {
+    const size = 260, cx = size / 2, cy = size / 2, R = 92, max = 10;
+    const n = dimensions.length;
+    if (!n) return "";
+    const angleAt = i => -Math.PI / 2 + (2 * Math.PI * i) / n;
+    const pt = (i, r) => [cx + r * Math.cos(angleAt(i)), cy + r * Math.sin(angleAt(i))];
+    let grid = "";
+    [0.25, 0.5, 0.75, 1].forEach(f => {
+      const pts = dimensions.map((_, i) => pt(i, R * f).map(v => v.toFixed(1)).join(",")).join(" ");
+      grid += `<polygon points="${pts}" fill="none" stroke="#dde4ec" stroke-width="1"/>`;
+    });
+    let axes = "", labels = "";
+    dimensions.forEach((d, i) => {
+      const [x, y] = pt(i, R);
+      axes += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#dde4ec" stroke-width="1"/>`;
+      const [lx, ly] = pt(i, R + 18);
+      const anchor = Math.abs(lx - cx) < 8 ? "middle" : (lx > cx ? "start" : "end");
+      labels += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="10.5" fill="#5d6b7a" text-anchor="${anchor}" dominant-baseline="middle">${escapeHtml(d.name)} ${d.score}</text>`;
+    });
+    const dataPts = dimensions.map((d, i) => pt(i, R * Math.max(0, Math.min(max, d.score)) / max).map(v => v.toFixed(1)).join(",")).join(" ");
+    return `<svg class="radar-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${grid}${axes}<polygon points="${dataPts}" fill="rgba(52,152,219,0.28)" stroke="#3498db" stroke-width="2"/>${dimensions.map((d, i) => { const [x, y] = pt(i, R * Math.max(0, Math.min(max, d.score)) / max); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#2980b9"/>`; }).join("")}${labels}</svg>`;
+  }
+  function buildScorecardHtml(d) {
+    const lvl = decisionLevelClass(d.decision_level);
+    const overall = Math.max(0, Math.min(100, Number(d.overall) || 0));
+    const gaugeColor = scoreColor(overall, 100);
+    const card = `
+      <div class="decision-card ${lvl}">
+        <div class="dc-top">
+          <div>
+            <div class="dc-title">🎯 候选人最终决策卡</div>
+            <div class="dc-name">${escapeHtml(d.candidate || "候选人")}</div>
+            <div class="dc-position">${escapeHtml(d.position || "")}</div>
+          </div>
+          <div class="dc-badge">${escapeHtml(d.decision_level || "")}</div>
+        </div>
+        <div class="dc-grid">
+          <div class="dc-cell"><div class="k">结论</div><div class="v">${escapeHtml(d.decision || "")}</div></div>
+          <div class="dc-cell"><div class="k">核心原因</div><div class="v">${escapeHtml(d.core_reason || "")}</div></div>
+          <div class="dc-cell"><div class="k">最大风险</div><div class="v">${escapeHtml(d.biggest_risk || "")}</div></div>
+          <div class="dc-cell"><div class="k">是否值得复面</div><div class="v">${escapeHtml(d.worth_second_interview || "")}</div></div>
+          <div class="dc-cell"><div class="k">建议动作</div><div class="v">${escapeHtml(d.recommended_action || "")}</div></div>
+        </div>
+      </div>`;
+    const dims = Array.isArray(d.dimensions) ? d.dimensions.filter(x => x && x.name != null) : [];
+    const viz = dims.length ? `
+      <div class="scorecard-viz">
+        <div class="radar-wrap">${buildRadarSvg(dims)}</div>
+        <div class="overall-gauge">
+          <div><span class="og-score" style="color:${gaugeColor}">${overall}</span><span class="og-max"> / 100</span></div>
+          <div class="og-label">岗位胜任力综合得分</div>
+          <div class="og-bar"><div class="og-fill" style="width:${overall}%; background:${gaugeColor}"></div></div>
+        </div>
+      </div>` : "";
+    return card + viz;
+  }
+  function enhanceMarkdown(root) {
+    // 红旗整行高亮
+    root.querySelectorAll("li, p, td").forEach(el => {
+      if (/^\s*🚩/.test(el.textContent)) el.classList.add("flag-line");
+    });
+    // 表格单元格：证据强度徽章 + ✅❌ 着色
+    root.querySelectorAll("td").forEach(td => {
+      const t = td.textContent.trim();
+      if (t === "强") { td.innerHTML = '<span class="ev-badge ev-strong">强</span>'; }
+      else if (t === "中") { td.innerHTML = '<span class="ev-badge ev-mid">中</span>'; }
+      else if (t === "弱") { td.innerHTML = '<span class="ev-badge ev-weak">弱</span>'; }
+      else if (t === "待验证") { td.innerHTML = '<span class="ev-badge ev-pending">待验证</span>'; }
+    });
+    root.innerHTML = root.innerHTML
+      .replace(/✅/g, '<span class="pass-mark">✅</span>')
+      .replace(/❌/g, '<span class="fail-mark">❌</span>');
+  }
+  function renderReport(content, md) {
+    const { data, body } = parseScorecard(md);
+    const vizHtml = data ? buildScorecardHtml(data) : "";
+    content.innerHTML = vizHtml + `<div class="markdown">${marked.parse(body)}</div>`;
+    enhanceMarkdown(content.querySelector(".markdown"));
+  }
   function renderCurrent() {
     const content = document.getElementById("outputContent");
     const toolbar = document.getElementById("toolbar");
     const md = results[currentTab];
     if (md) {
       content.classList.remove("empty");
-      content.innerHTML = `<div class="markdown">${marked.parse(md)}</div>`;
+      renderReport(content, md);
+      if (currentTab === "eval") appendCeoNote(content);
       toolbar.style.display = "flex";
     } else {
       content.classList.add("empty");
-      content.innerHTML = "（尚未生成）";
+      content.innerHTML = buildPendingHtml(currentTab);
       toolbar.style.display = "none";
     }
+    updateStepper();
   }
-  function showLoading(stepName) {
+  const STEP_ORDER = ["resume", "pre", "plan", "eval"];
+  function setStepState(tabName, state) {
+    stepState[tabName] = state;
+    updateStepper();
+    if (tabName === currentTab && !results[tabName]) renderCurrent();
+  }
+  function setQueuedSteps(steps) {
+    steps.forEach(tabName => {
+      if (!results[tabName]) stepState[tabName] = "queued";
+    });
+    updateStepper();
+    if (!results[currentTab]) renderCurrent();
+  }
+  function resetFlowStates(steps = STEP_ORDER) {
+    steps.forEach(tabName => {
+      results[tabName] = "";
+      stepState[tabName] = "idle";
+      document.querySelector(`.tab[data-tab="${tabName}"]`).classList.remove("done");
+    });
+    updateStepper();
+  }
+  function buildPendingHtml(tabName) {
+    const state = stepState[tabName] || "idle";
+    const name = stepNames[tabName] || "当前步骤";
+    if (state === "running") {
+      return `<div class="pending-card loading-card"><div class="pending-icon"><div class="spinner"></div></div><div><div class="pending-title">正在生成《${name}》</div><div class="pending-desc">AI 正在处理，请稍候。你可以切换到其他步骤查看整体进度。</div></div></div>`;
+    }
+    if (state === "queued") {
+      return `<div class="pending-card"><div class="pending-icon">⏳</div><div><div class="pending-title">《${name}》已进入队列</div><div class="pending-desc">前一步完成后会自动开始生成，不需要重复点击。</div></div></div>`;
+    }
+    if (state === "error") {
+      return `<div class="pending-card"><div class="pending-icon">⚠️</div><div><div class="pending-title">《${name}》生成失败</div><div class="pending-desc">请查看左侧错误提示，修正后重新点击生成。</div></div></div>`;
+    }
+    return `<div class="pending-card"><div class="pending-icon">🕒</div><div><div class="pending-title">《${name}》尚未生成</div><div class="pending-desc">点击左侧“开始分析”后会按流程自动生成。</div></div></div>`;
+  }
+  function updateStepper() {
+    document.querySelectorAll("#stepper .stepper-item").forEach(item => {
+      const step = item.dataset.step;
+      const state = results[step] ? "done" : (stepState[step] || "idle");
+      item.classList.remove("done", "active", "running", "pending", "error");
+      item.classList.toggle("active", step === currentTab);
+      item.classList.toggle("done", state === "done");
+      item.classList.toggle("running", state === "running");
+      item.classList.toggle("pending", state === "queued" || state === "idle");
+      item.classList.toggle("error", state === "error");
+      const label = item.querySelector(".stepper-label");
+      const base = stepNames[step] || label.textContent;
+      const status = state === "done" ? "已完成" : state === "running" ? "生成中" : state === "queued" ? "等待中" : state === "error" ? "失败" : "未开始";
+      label.innerHTML = `${base}<small>${status}</small>`;
+    });
+  }
+  function showLoading(stepName, tabName = currentTab) {
+    setStepState(tabName, "running");
     const content = document.getElementById("outputContent");
     content.classList.remove("empty");
-    content.innerHTML = `<div class="loading"><div class="spinner"></div> 正在生成《${stepName}》，请稍候...</div>`;
+    if (tabName === currentTab) content.innerHTML = buildPendingHtml(tabName);
   }
   function showError(msg) { document.getElementById("errorBox").innerHTML = `<div class="error">❌ ${msg}</div>`; }
   function clearError() { document.getElementById("errorBox").innerHTML = ""; }
@@ -270,10 +627,22 @@
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add("active");
     currentTab = tabName;
+    updateStepper();
   }
+  document.querySelectorAll("#stepper .stepper-item").forEach(item => {
+    item.addEventListener("click", () => {
+      switchTab(item.dataset.step);
+      renderCurrent();
+    });
+  });
   async function generateFormalJd() {
     const rawJd = document.getElementById("jdText").value.trim();
-    if (!rawJd) { showError("请先填写岗位描述"); return ""; }
+    const formalJdText = document.getElementById("formalJdText");
+    if (!rawJd) {
+      showError("请先填写岗位描述");
+      formalJdText.value = "请先在上方填写岗位描述，例如：销售负责人，负责抖音渠道增长，带 10 人团队，重视结果和抗压。";
+      return "";
+    }
     const btn = document.getElementById("generateJdBtn");
     btn.disabled = true;
     btn.textContent = "⏳ 正在生成 JD...";
@@ -282,12 +651,13 @@
       const jdRes = await fetch("/api/generate_jd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ raw_description: rawJd }) });
       const jdData = await jdRes.json();
       if (jdData.error) throw new Error(jdData.error);
-      document.getElementById("formalJdText").value = jdData.markdown;
+      formalJdText.value = jdData.markdown;
       btn.textContent = "✅ 已生成正式 JD";
       setTimeout(() => { btn.textContent = "✨ 重新生成正式 JD"; btn.disabled = false; }, 1600);
       return jdData.markdown;
     } catch (e) {
       showError(e.message);
+      formalJdText.value = `JD 生成失败：${e.message}\n\n请检查：\n1. 本地或 Render 是否已配置 OPENROUTER_API_KEY\n2. OpenRouter 账户是否有余额\n3. 网络是否能访问 OpenRouter`;
       btn.disabled = false;
       btn.textContent = "✨ 生成正式 JD";
       return "";
@@ -307,14 +677,16 @@
     const btn = document.getElementById("runBtn");
     btn.disabled = true;
     btn.textContent = "⏳ 处理中...";
+    resetFlowStates(["resume", "pre", "plan"]);
+    setQueuedSteps(["resume", "pre", "plan"]);
     try {
       if (!jd) {
-        switchTab("resume"); showLoading("正式岗位描述");
+        switchTab("resume"); showLoading("正式岗位描述", "resume");
         jd = await generateFormalJd();
         if (!jd) throw new Error("正式 JD 生成失败");
       }
 
-      switchTab("resume"); showLoading("简历解析");
+      switchTab("resume"); showLoading("简历解析", "resume");
       const formData = new FormData();
       formData.append("file", file);
       formData.append("candidate_name", "候选人");
@@ -324,25 +696,29 @@
       results.resume = data.markdown;
       candidateName = data.candidate_name || getCandidateName();
       document.getElementById("candidateName").value = candidateName;
+      stepState.resume = "done";
       markTabDone("resume"); renderCurrent();
 
-      switchTab("pre"); showLoading("面试前作战图");
+      switchTab("pre"); showLoading("面试前作战图", "pre");
       res = await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style }) });
       data = await res.json();
       if (data.error) throw new Error(data.error);
       results.pre = data.markdown;
+      stepState.pre = "done";
       markTabDone("pre"); renderCurrent();
 
-      switchTab("plan"); showLoading("面试追问卡");
+      switchTab("plan"); showLoading("面试追问卡", "plan");
       res = await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, pre_report: results.pre }) });
       data = await res.json();
       if (data.error) throw new Error(data.error);
       results.plan = data.markdown;
+      stepState.plan = "done";
       markTabDone("plan"); renderCurrent();
       btn.textContent = "✅ 全部完成！";
       setTimeout(() => { btn.textContent = "🚀 重新分析"; btn.disabled = false; }, 2000);
     } catch (e) {
       showError(e.message);
+      setStepState(currentTab, "error");
       btn.disabled = false;
       btn.textContent = "🚀 开始分析";
     }
@@ -371,13 +747,24 @@
   function buildPrintReport(tabName) {
     const md = results[tabName];
     if (!md) return "";
+    const { data, body } = parseScorecard(md);
+    const vizHtml = data ? buildScorecardHtml(data) : "";
+    let noteHtml = "";
+    if (tabName === "eval") {
+      const live = document.getElementById("ceoNoteInput");
+      const rec = getCurrentRecord();
+      const note = live ? live.value : (rec ? rec.ceoNote : "");
+      if (note && note.trim()) noteHtml = `<div class="ceo-note"><h3>📝 CEO 批注</h3><div>${escapeHtml(note).replace(/\n/g, "<br>")}</div></div>`;
+    }
     return `
       <section class="print-report">
         <div class="print-cover">
           <h1>${escapeHtml(pdfTitles[tabName])}：${escapeHtml(getCandidateName())}</h1>
           <div class="print-meta">CEO 面试副驾驶 · ${escapeHtml(currentDate)}</div>
         </div>
-        <div class="markdown">${marked.parse(md)}</div>
+        ${vizHtml}
+        <div class="markdown">${marked.parse(body)}</div>
+        ${noteHtml}
       </section>
     `;
   }
@@ -421,8 +808,11 @@
     const btn = document.getElementById("evalBtn");
     btn.disabled = true;
     btn.textContent = "⏳ 评判中...";
+    results.eval = "";
+    stepState.eval = "queued";
+    document.querySelector(`.tab[data-tab="eval"]`).classList.remove("done");
     try {
-      switchTab("eval"); renderCurrent(); showLoading("面试后评判");
+      switchTab("eval"); renderCurrent(); showLoading("面试后评判", "eval");
       const formData = new FormData();
       formData.append("candidate_name", candidateName);
       formData.append("resume_md", results.resume);
@@ -437,15 +827,167 @@
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       results.eval = data.markdown;
+      stepState.eval = "done";
       markTabDone("eval"); renderCurrent();
+      saveCurrentToHistory();
       btn.textContent = "✅ 评判完成！";
       setTimeout(() => { btn.textContent = "🧮 重新评判"; btn.disabled = false; }, 2000);
     } catch (e) {
       showError(e.message);
+      setStepState("eval", "error");
       btn.disabled = false;
       btn.textContent = "🧮 生成面试后评判";
     }
   });
+
+  // ===== D: 历史记录 + 候选人对比 + CEO 批注 =====
+  const HISTORY_KEY = "interview_copilot_history_v1";
+  let currentRecordId = "";
+  function loadHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch (e) { return []; } }
+  function saveHistory(list) { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }
+  function getPositionName() {
+    const sel = POSITION_PRESETS[positionSelect.value];
+    if (sel) return sel.name;
+    const { data } = parseScorecard(results.eval || "");
+    if (data && data.position) return data.position;
+    return "未分类岗位";
+  }
+  function recordIdFor(name, position) { return `${name}|${position}`; }
+  function saveCurrentToHistory() {
+    const name = getCandidateName();
+    const position = getPositionName();
+    const { data } = parseScorecard(results.eval || "");
+    const id = recordIdFor(name, position);
+    const list = loadHistory();
+    const existing = list.find(r => r.id === id);
+    const record = {
+      id, name, position, date: currentDate || new Date().toISOString().slice(0, 10),
+      results: { ...results }, scorecard: data || null,
+      ceoNote: existing ? existing.ceoNote : ""
+    };
+    const idx = list.findIndex(r => r.id === id);
+    if (idx >= 0) list[idx] = record; else list.unshift(record);
+    saveHistory(list);
+    currentRecordId = id;
+  }
+  function getCurrentRecord() { return loadHistory().find(r => r.id === currentRecordId) || null; }
+  function appendCeoNote(content) {
+    const rec = getCurrentRecord();
+    const noteVal = rec ? rec.ceoNote : "";
+    const wrap = document.createElement("div");
+    wrap.className = "ceo-note";
+    wrap.innerHTML = `<h3>📝 CEO 批注</h3><textarea id="ceoNoteInput" placeholder="CEO 在此填写决策意见，会保存在该候选人记录并导出到 PDF...">${escapeHtml(noteVal)}</textarea><div class="cn-saved" id="ceoNoteSaved"></div>`;
+    content.appendChild(wrap);
+    const ta = wrap.querySelector("#ceoNoteInput");
+    const saved = wrap.querySelector("#ceoNoteSaved");
+    let timer = null;
+    ta.addEventListener("input", () => {
+      if (!currentRecordId) saveCurrentToHistory();
+      const list = loadHistory();
+      const r = list.find(x => x.id === currentRecordId);
+      if (r) { r.ceoNote = ta.value; saveHistory(list); }
+      saved.textContent = "✓ 已自动保存";
+      clearTimeout(timer); timer = setTimeout(() => { saved.textContent = ""; }, 1500);
+    });
+  }
+  function levelPillClass(level) {
+    const c = decisionLevelClass(level);
+    return { "level-strong": "pill-strong", "level-ok": "pill-ok", "level-caution": "pill-caution", "level-reject": "pill-reject" }[c] || "pill-caution";
+  }
+  // 弹窗开关
+  function openModal(id) { document.getElementById(id).classList.add("open"); }
+  function closeModal(el) { el.classList.remove("open"); }
+  document.querySelectorAll(".modal-mask").forEach(mask => {
+    mask.addEventListener("click", e => { if (e.target === mask || e.target.hasAttribute("data-close")) closeModal(mask); });
+  });
+  // 历史记录
+  document.getElementById("historyBtn").addEventListener("click", () => { renderHistory(); openModal("historyModal"); });
+  function renderHistory() {
+    const list = loadHistory();
+    const body = document.getElementById("historyBody");
+    if (!list.length) { body.innerHTML = '<div class="hist-empty">暂无历史记录。完成一次面试后评判后会自动保存到这里。</div>'; return; }
+    body.innerHTML = list.map(r => {
+      const lvl = r.scorecard ? r.scorecard.decision_level : "";
+      const overall = r.scorecard ? r.scorecard.overall : "—";
+      const pill = lvl ? `<span class="level-pill ${levelPillClass(lvl)}">${escapeHtml(lvl)}</span>` : "";
+      return `<div class="hist-item">
+        <div class="hi-main">
+          <div class="hi-name">${escapeHtml(r.name)} ${pill}</div>
+          <div class="hi-sub">${escapeHtml(r.position)} · 综合 ${overall} · ${escapeHtml(r.date)}</div>
+        </div>
+        <div class="hi-actions">
+          <button data-load="${escapeHtml(r.id)}">载入</button>
+          <button class="del" data-del="${escapeHtml(r.id)}">删除</button>
+        </div>
+      </div>`;
+    }).join("");
+    body.querySelectorAll("[data-load]").forEach(b => b.addEventListener("click", () => loadRecord(b.dataset.load)));
+    body.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { deleteRecord(b.dataset.del); renderHistory(); }));
+  }
+  function loadRecord(id) {
+    const r = loadHistory().find(x => x.id === id);
+    if (!r) return;
+    results.resume = r.results.resume || "";
+    results.pre = r.results.pre || "";
+    results.plan = r.results.plan || "";
+    results.eval = r.results.eval || "";
+    currentRecordId = r.id;
+    document.getElementById("candidateName").value = r.name;
+    ["resume", "pre", "plan", "eval"].forEach(t => { if (results[t]) markTabDone(t); });
+    switchTab("eval"); renderCurrent();
+    closeModal(document.getElementById("historyModal"));
+  }
+  function deleteRecord(id) {
+    saveHistory(loadHistory().filter(r => r.id !== id));
+    if (currentRecordId === id) currentRecordId = "";
+  }
+  // 候选人对比
+  document.getElementById("compareBtn").addEventListener("click", () => { renderCompareSelect(); openModal("compareModal"); });
+  function renderCompareSelect() {
+    const list = loadHistory().filter(r => r.scorecard);
+    const body = document.getElementById("compareBody");
+    if (list.length < 2) { body.innerHTML = '<div class="hist-empty">至少需要 2 位有评分结果的候选人才能对比。</div>'; return; }
+    const groups = {};
+    list.forEach(r => { (groups[r.position] = groups[r.position] || []).push(r); });
+    const groupsHtml = Object.entries(groups).map(([pos, recs]) => `
+      <div class="cmp-pos-group">
+        <h4>${escapeHtml(pos)}（${recs.length} 人）</h4>
+        ${recs.map(r => `<label><input type="checkbox" class="cmp-chk" value="${escapeHtml(r.id)}"> ${escapeHtml(r.name)} · 综合 ${r.scorecard.overall}</label>`).join("")}
+      </div>`).join("");
+    body.innerHTML = `<div class="step-hint" style="text-align:left;margin-bottom:10px;">勾选同岗位的 2-4 位候选人，然后点击生成对比。</div>
+      <div class="cmp-select-bar">${groupsHtml}</div>
+      <button class="btn" id="doCompareBtn" style="max-width:220px;">📊 生成对比</button>
+      <div id="cmpResult" style="margin-top:18px;"></div>`;
+    document.getElementById("doCompareBtn").addEventListener("click", runCompare);
+  }
+  function runCompare() {
+    const ids = Array.from(document.querySelectorAll(".cmp-chk:checked")).map(c => c.value);
+    const result = document.getElementById("cmpResult");
+    if (ids.length < 2) { result.innerHTML = '<div class="error">请至少勾选 2 位候选人。</div>'; return; }
+    const recs = loadHistory().filter(r => ids.includes(r.id));
+    const positions = new Set(recs.map(r => r.position));
+    if (positions.size > 1) { result.innerHTML = '<div class="error">请只选择同一岗位的候选人进行对比。</div>'; return; }
+    // 汇总维度名（取并集，按第一位顺序）
+    const dimNames = [];
+    recs.forEach(r => (r.scorecard.dimensions || []).forEach(d => { if (!dimNames.includes(d.name)) dimNames.push(d.name); }));
+    const scoreOf = (r, name) => { const d = (r.scorecard.dimensions || []).find(x => x.name === name); return d ? Number(d.score) : null; };
+    const head = `<tr><th>维度 / 候选人</th>${recs.map(r => `<th>${escapeHtml(r.name)}</th>`).join("")}</tr>`;
+    const rows = [];
+    const overalls = recs.map(r => Number(r.scorecard.overall) || 0);
+    const maxOverall = Math.max(...overalls);
+    rows.push(`<tr><td class="metric">综合得分</td>${recs.map((r, i) => `<td class="${overalls[i] === maxOverall ? "cmp-best" : ""}"><strong>${r.scorecard.overall}</strong> / 100</td>`).join("")}</tr>`);
+    rows.push(`<tr><td class="metric">结论</td>${recs.map(r => { const lvl = r.scorecard.decision_level || ""; return `<td><span class="level-pill ${levelPillClass(lvl)}">${escapeHtml(lvl)}</span></td>`; }).join("")}</tr>`);
+    dimNames.forEach(name => {
+      const vals = recs.map(r => scoreOf(r, name));
+      const valid = vals.filter(v => v != null);
+      const max = valid.length ? Math.max(...valid) : null;
+      rows.push(`<tr><td class="metric">${escapeHtml(name)}</td>${vals.map(v => `<td class="${v != null && v === max ? "cmp-best" : ""}">${v == null ? "—" : v}</td>`).join("")}</tr>`);
+    });
+    rows.push(`<tr><td class="metric">核心原因</td>${recs.map(r => `<td>${escapeHtml(r.scorecard.core_reason || "")}</td>`).join("")}</tr>`);
+    rows.push(`<tr><td class="metric">最大风险</td>${recs.map(r => `<td>${escapeHtml(r.scorecard.biggest_risk || "")}</td>`).join("")}</tr>`);
+    rows.push(`<tr><td class="metric">建议动作</td>${recs.map(r => `<td>${escapeHtml(r.scorecard.recommended_action || "")}</td>`).join("")}</tr>`);
+    result.innerHTML = `<table class="cmp-table">${head}${rows.join("")}</table><div class="step-hint" style="text-align:left;margin-top:8px;">绿色高亮为该维度得分最高者。</div>`;
+  }
 </script>
 </body>
 </html>
