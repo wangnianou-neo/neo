@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO 面试副驾驶</title>
+<script src="https://cdn.bootcdn.net/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f6f8; color: #2c3e50; line-height: 1.6; padding: 30px; min-height: 100vh; }
+  .container { max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 24px; margin-bottom: 6px; }
+  .subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 14px; }
+  .layout { display: grid; grid-template-columns: 420px 1fr; gap: 24px; }
+  .input-panel { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto; overscroll-behavior: contain; }
+  .input-panel h2 { font-size: 16px; margin-bottom: 16px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500; }
+  .field input[type="text"], .field textarea { width: 100%; padding: 10px 12px; border: 1px solid #dde2e8; border-radius: 8px; font-size: 14px; font-family: inherit; background: white; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: #3498db; }
+  .field textarea { resize: vertical; min-height: 80px; }
+  .upload-box { border: 2px dashed #cbd3dc; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafbfc; display: block; }
+  .upload-box:hover { border-color: #3498db; background: #f0f7fc; }
+  .upload-box.has-file { border-color: #27ae60; background: #f0faf4; }
+  .upload-box input[type="file"] { display: none; }
+  .upload-icon { font-size: 32px; margin-bottom: 6px; }
+  .upload-text { font-size: 13px; color: #7f8c8d; }
+  .upload-filename { color: #27ae60; font-weight: 500; word-break: break-all; }
+  .btn { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; }
+  .btn:hover:not(:disabled) { background: #2980b9; }
+  .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab { padding: 10px 18px; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; color: #7f8c8d; border: 1px solid #e1e4e8; user-select: none; }
+  .tab:hover { border-color: #3498db; color: #3498db; }
+  .tab.active { background: #3498db; color: white; border-color: #3498db; }
+  .tab.done::after { content: " ✓"; color: #27ae60; font-weight: bold; }
+  .tab.active.done::after { color: white; }
+  .output-content { background: white; border-radius: 12px; padding: 32px 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); min-height: 500px; }
+  .output-content.empty { color: #95a5a6; font-size: 15px; text-align: center; }
+  .iceberg-card { background: linear-gradient(135deg, #fff 0%, #f8fbff 100%); border: 1px solid #edf1f5; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(44,62,80,0.08); text-align: center; }
+  .iceberg-card h2 { color: #2c3e50; font-size: 22px; margin-bottom: 8px; }
+  .iceberg-card .highlight { color: #a40000; font-weight: 700; }
+  .iceberg-card p { color: #607080; font-size: 14px; margin: 8px auto 18px; max-width: 720px; }
+  .iceberg-image-wrap { display: flex; justify-content: center; align-items: center; width: 100%; }
+  .iceberg-image { display: block; width: 100%; max-width: 860px; height: auto; aspect-ratio: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); border: 1px solid #eef2f6; background: #f4f7fb; }
+  .iceberg-note { margin-top: 16px; padding: 14px 16px; background: #fff7f7; border: 1px solid #f2d6d6; border-radius: 12px; color: #7b2b2b; font-size: 14px; line-height: 1.7; }
+  .required-red { color: #a40000; font-weight: 700; }
+  .talent-reminder { background: linear-gradient(135deg, #fff7f7 0%, #f3f8ff 100%); border: 1px solid #edf1f5; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  .talent-reminder-title { color: #2c3e50; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .talent-reminder-text { color: #657280; font-size: 13px; line-height: 1.7; }
+  .talent-reminder-text strong { color: #a40000; }
+  .markdown h1 { font-size: 22px; margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #ecf0f1; }
+  .markdown h1:first-child { margin-top: 0; }
+  .markdown h2 { font-size: 18px; margin: 18px 0 10px; }
+  .markdown h3 { font-size: 16px; margin: 14px 0 8px; }
+  .markdown p { margin: 8px 0; }
+  .markdown ul, .markdown ol { margin: 8px 0 8px 24px; }
+  .markdown table { border-collapse: collapse; margin: 12px 0; width: 100%; font-size: 14px; }
+  .markdown th, .markdown td { border: 1px solid #dde2e8; padding: 8px 12px; text-align: left; vertical-align: top; }
+  .markdown th { background: #f5f6f8; }
+  .markdown blockquote { border-left: 4px solid #3498db; padding: 8px 16px; margin: 12px 0; background: #f8fafc; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+  .toolbar button { padding: 6px 14px; background: #ecf0f1; color: #555; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .toolbar button.primary { background: #2c3e50; color: white; }
+  .toolbar button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .loading { display: flex; align-items: center; gap: 10px; color: #3498db; padding: 20px; font-size: 14px; }
+  .spinner { width: 20px; height: 20px; border: 3px solid #ecf0f1; border-top-color: #3498db; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error { color: #e74c3c; padding: 12px; background: #fdf2f0; border-radius: 6px; margin-top: 12px; font-size: 13px; border-left: 4px solid #e74c3c; }
+  .step-hint { font-size: 12px; color: #95a5a6; margin-top: 4px; text-align: center; }
+  .print-area { display: none; }
+  .print-report { page-break-after: always; break-after: page; }
+  .print-report:last-child { page-break-after: auto; break-after: auto; }
+  .print-cover { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #2c3e50; }
+  .print-cover h1 { font-size: 24px; margin-bottom: 8px; }
+  .print-meta { color: #666; font-size: 13px; }
+  @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .input-panel { position: static; } }
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    body { background: white; padding: 0; color: #111; font-size: 12pt; }
+    body.printing .container { display: none; }
+    body.printing .print-area { display: block; }
+    .print-area .markdown h1 { font-size: 20pt; margin: 0 0 12pt; border-bottom: 1pt solid #ddd; padding-bottom: 6pt; }
+    .print-area .markdown h2 { font-size: 15pt; margin: 16pt 0 8pt; }
+    .print-area .markdown h3 { font-size: 13pt; margin: 12pt 0 6pt; }
+    .print-area .markdown p, .print-area .markdown li { line-height: 1.55; }
+    .print-area .markdown table { page-break-inside: auto; font-size: 10pt; }
+    .print-area .markdown tr { page-break-inside: avoid; page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎯 CEO 面试副驾驶</h1>
+  <div class="subtitle">本地版 · 上传简历 → 生成简历解析 + 面试前作战图 + 面试追问卡</div>
+  <div class="layout">
+    <div class="input-panel">
+      <h2>📥 输入信息</h2>
+      <div class="field"><label>候选人姓名（自动从简历提取）</label><input type="text" id="candidateName" placeholder="上传简历后自动识别" value="候选人"></div>
+      <div class="field"><label>简历 PDF</label><label class="upload-box" id="uploadBox"><input type="file" id="resumeFile" accept=".pdf"><div class="upload-icon">📄</div><div class="upload-text" id="uploadText">点击或拖拽 PDF 到这里</div></label></div>
+      <div class="field"><label>岗位描述输入</label><textarea id="jdText" rows="6" placeholder="用自然语言描述这个岗位即可，例如：销售负责人，负责抖音渠道增长，带 10 人团队，重视结果和抗压..."></textarea><button class="btn" id="generateJdBtn" type="button">✨ 生成正式 JD</button></div>
+      <div class="field"><label>AI 生成的正式 JD（自动生成，可编辑）</label><textarea id="formalJdText" rows="8" placeholder="点击开始分析后会先自动生成正式 JD，后续分析会使用这里的内容。"></textarea></div>
+      <div class="field"><label>岗位权重（可选）</label><textarea id="weightsText" rows="4" placeholder="如：M 40%，A 25%，I 15%，R 10%，O 10%；一票否决：诚信问题、无法接受创业强度..."></textarea></div>
+      <div class="talent-reminder"><div class="talent-reminder-title">🧊 人才冰山提醒</div><div class="talent-reminder-text">经验、学历、成功标签只是<strong>冰山上</strong>的信息。面试中更要验证<strong>冰山下</strong>的动机、价值观、岗位胜任力、学习力、韧性和长期潜力。</div></div>
+      <div class="field"><label>部门风格</label><select id="departmentSelect"><option value="">请选择部门（可选）</option></select></div>
+      <div class="field"><label>部门风格说明（可编辑）</label><textarea id="departmentStyle" rows="6" placeholder="选择部门后会自动填入参考说明，也可手动补充该部门的管理者风格、团队节奏、协作与压力环境..."></textarea></div>
+      <button class="btn" id="runBtn">🚀 开始分析</button>
+      <div class="step-hint">依次生成：简历解析 → 作战图 → 追问卡</div>
+      <div class="field" style="margin-top:24px;"><label>面试记录 / 转写（面试后填写）</label><textarea id="interviewNotes" rows="8" placeholder="粘贴面试笔记、问答记录或录音转写..."></textarea></div>
+      <div class="field"><label>面试反馈附件（可多选）</label><label class="upload-box" id="interviewUploadBox"><input type="file" id="interviewFiles" multiple accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp,.bmp,.tiff,.tif"><div class="upload-icon">📝</div><div class="upload-text" id="interviewUploadText">点击或拖拽面试记录附件到这里</div></label><div class="step-hint" id="interviewFilesHint">支持 PDF、Word(.docx)、图片、TXT、Markdown，可一次上传多份。</div></div>
+      <button class="btn" id="evalBtn">🧮 生成面试后评判</button>
+      <div class="step-hint">需先完成前三步，并填写面试记录或上传附件</div>
+      <div id="errorBox"></div>
+    </div>
+    <div class="output-panel">
+      <div class="tabs">
+        <div class="tab active" data-tab="resume">① 简历解析</div>
+        <div class="tab" data-tab="pre">② 面试前作战图</div>
+        <div class="tab" data-tab="plan">③ 面试追问卡</div>
+        <div class="tab" data-tab="eval">④ 面试后评判</div>
+      </div>
+      <div class="toolbar" id="toolbar" style="display:none;"><button onclick="copyCurrent()">📋 复制 Markdown</button><button onclick="downloadCurrent()">💾 下载 .md</button><button onclick="exportCurrentPdf()">📄 导出当前 PDF</button><button class="primary" onclick="exportAllPdf()">📱 导出全部 PDF</button></div>
+      <div class="output-content empty" id="outputContent"><div class="iceberg-card"><h2>AMIRO 人才评估<span class="highlight">冰山模型</span></h2><p>不只看经验和履历，更要识别冰山下的胜任力、价值观、动机和长期潜力。</p><div class="iceberg-image-wrap"><img class="iceberg-image" src="assets/talent-iceberg.jpg" alt="人才冰山模型" onerror="this.parentElement.style.display='none'; this.parentElement.nextElementSibling.style.display='block';"></div><div class="iceberg-note" style="display:none;">图片文件尚未放入项目：请将冰山图保存为 <strong>assets/talent-iceberg.jpg</strong> 后刷新页面。</div><div class="iceberg-note"><span class="required-red">【红色为必评估项】</span>经验、学历、成功标签通常显而易见；<br>真正决定长期表现的，是岗位胜任力、综合能力、动机和价值观。</div></div></div>
+    </div>
+  </div>
+</div>
+<div class="print-area" id="printArea"></div>
+<script>
+  const results = { resume: "", pre: "", plan: "", eval: "" };
+  const titles = { resume: "01_简历.md", pre: "02_面试前作战图.md", plan: "03_面试追问卡.md", eval: "04_面试后评判.md" };
+  const pdfTitles = { resume: "简历分析", pre: "面试前作战图", plan: "面试追问卡", eval: "面试后评判" };
+  let currentTab = "resume";
+  let currentDate = "";
+  const fileInput = document.getElementById("resumeFile");
+  const uploadBox = document.getElementById("uploadBox");
+  const inputPanel = document.querySelector(".input-panel");
+  const interviewFiles = document.getElementById("interviewFiles");
+  const interviewFilesHint = document.getElementById("interviewFilesHint");
+  const interviewUploadBox = document.getElementById("interviewUploadBox");
+  const interviewUploadText = document.getElementById("interviewUploadText");
+  const uploadText = document.getElementById("uploadText");
+
+  const DEPARTMENT_PRESETS = {
+    sales: {
+      name: "销售部门",
+      style: "管理者风格：结果导向、强 push，KPI/目标拆解到周，奖惩分明。\n团队风格：抖音式高强度打法，节奏快、竞争氛围浓，敢抢敢拼，结果说话。\n压力类型：业绩压力大，背指标，月度/季度强复盘。\n协作方式：以单兵作战 + 小团队为主，强调转化率、ROI 和闭环执行力。\n适配要点：抗压、目标感强、愿意为结果牺牲舒适区、能在数字压力下保持动作不变形。"
+    },
+    overseas: {
+      name: "海外团队",
+      style: "管理者风格：强调自驱与异步协作，结果导向但容忍试错，跨时区远程管理。\n团队风格：多元文化、英文工作环境，强调独立判断、文档化沟通、跨国协同。\n压力类型：时差、跨文化沟通成本、本地化决策不确定性。\n协作方式：异步为主，依赖文档/数据沟通，弱监督下需要高度自律。\n适配要点：跨文化适应力、英文沟通、独立解决问题、对模糊环境的容忍度。"
+    },
+    product: {
+      name: "产品部门",
+      style: "管理者风格：逻辑驱动、强调需求洞察与优先级判断，重视数据与用户价值。\n团队风格：理性、追问本质，频繁评审与迭代，重视方案论证。\n压力类型：需求不确定、跨部门拉齐、版本节奏压力。\n协作方式：强跨部门（研发/设计/运营/业务）协同，需要强说服与对齐能力。\n适配要点：结构化思维、用户同理心、跨团队协调、能在争议中推动决策。"
+    },
+    rd: {
+      name: "研发部门",
+      style: "管理者风格：技术深度导向，重视工程质量、系统设计与可维护性。\n团队风格：务实、重视代码与方案评审，崇尚解决难题，弱形式主义。\n压力类型：技术难度、线上稳定性、交付节奏。\n协作方式：以小组/模块负责制为主，依赖技术文档与 Code Review。\n适配要点：技术硬实力、工程素养、学习能力、对复杂问题的拆解与落地能力。"
+    },
+    marketing: {
+      name: "市场/品牌部门",
+      style: "管理者风格：创意与数据并重，敏锐捕捉趋势，敢于快速试验。\n团队风格：节奏快、热点驱动、强调传播力与内容质感。\n压力类型：热点时效、声量与转化双指标、预算 ROI。\n协作方式：与销售/产品/外部资源高频联动，强调 campaign 协同。\n适配要点：内容敏感度、数据复盘能力、抗节奏压力、审美与表达力。"
+    },
+    operations: {
+      name: "运营部门",
+      style: "管理者风格：精细化、流程驱动，强调数据指标与执行落地。\n团队风格：耐心、细致、强执行，重视过程管理与复盘。\n压力类型：日常指标波动、活动节点、多任务并行。\n协作方式：跨部门拉通资源，强调 SOP 与闭环跟进。\n适配要点：执行力、数据敏感、细节把控、抗琐碎与高并发任务能力。"
+    },
+    hr: {
+      name: "人力/组织部门",
+      style: "管理者风格：以人为本但讲原则，重视组织效率与文化一致性。\n团队风格：高同理心、强沟通、注重保密与公正。\n压力类型：招聘交付、组织变动、文化与冲突处理。\n协作方式：服务并挑战业务，需在业务与员工之间平衡。\n适配要点：判断力、沟通力、价值观正、能在敏感议题中保持专业与中立。"
+    },
+    finance: {
+      name: "财务/法务部门",
+      style: "管理者风格：严谨、合规导向，重视风险控制与数据准确。\n团队风格：细致、原则性强、低容错，重视流程与证据。\n压力类型：合规风险、审计、报表与节点压力。\n协作方式：作为风控与支持职能，既服务又约束业务。\n适配要点：专业严谨、风险意识、原则性、抗压且能与业务有效沟通。"
+    }
+  };
+  const departmentSelect = document.getElementById("departmentSelect");
+  const departmentStyle = document.getElementById("departmentStyle");
+  Object.entries(DEPARTMENT_PRESETS).forEach(([key, val]) => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = val.name;
+    departmentSelect.appendChild(opt);
+  });
+  departmentSelect.addEventListener("change", () => {
+    const preset = DEPARTMENT_PRESETS[departmentSelect.value];
+    if (preset) departmentStyle.value = preset.style;
+  });
+  inputPanel.addEventListener("wheel", (event) => {
+    const atTop = inputPanel.scrollTop === 0;
+    const atBottom = inputPanel.scrollTop + inputPanel.clientHeight >= inputPanel.scrollHeight - 1;
+    if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) return;
+    event.stopPropagation();
+  }, { passive: true });
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+      uploadBox.classList.add("has-file");
+      uploadText.innerHTML = `<span class="upload-filename">✓ ${fileInput.files[0].name}</span>`;
+    }
+  });
+  uploadBox.addEventListener("dragover", e => { e.preventDefault(); uploadBox.style.borderColor = "#3498db"; });
+  uploadBox.addEventListener("dragleave", () => { uploadBox.style.borderColor = ""; });
+  uploadBox.addEventListener("drop", e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length > 0) {
+      fileInput.files = e.dataTransfer.files;
+      fileInput.dispatchEvent(new Event("change"));
+    }
+  });
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      currentTab = tab.dataset.tab;
+      renderCurrent();
+    });
+  });
+  interviewFiles.addEventListener("change", () => {
+    if (!interviewFiles.files.length) {
+      interviewFilesHint.textContent = "支持 PDF、Word(.docx)、图片、TXT、Markdown，可一次上传多份。";
+      interviewUploadBox.classList.remove("has-file");
+      interviewUploadText.textContent = "点击或拖拽面试记录附件到这里";
+      return;
+    }
+    const names = Array.from(interviewFiles.files).map(file => file.name).join("、");
+    interviewUploadBox.classList.add("has-file");
+    interviewUploadText.innerHTML = `<span class="upload-filename">✓ 已选择 ${interviewFiles.files.length} 个文件</span>`;
+    interviewFilesHint.textContent = `已选择 ${interviewFiles.files.length} 个文件：${names}`;
+  });
+  interviewUploadBox.addEventListener("dragover", e => { e.preventDefault(); interviewUploadBox.style.borderColor = "#3498db"; });
+  interviewUploadBox.addEventListener("dragleave", () => { interviewUploadBox.style.borderColor = ""; });
+  interviewUploadBox.addEventListener("drop", e => {
+    e.preventDefault();
+    interviewUploadBox.style.borderColor = "";
+    if (e.dataTransfer.files.length > 0) {
+      interviewFiles.files = e.dataTransfer.files;
+      interviewFiles.dispatchEvent(new Event("change"));
+    }
+  });
+  fetch("/api/health")
+    .then(res => res.json())
+    .then(data => {
+      if (data.current_date) currentDate = data.current_date;
+    })
+    .catch(() => {});
+  function renderCurrent() {
+    const content = document.getElementById("outputContent");
+    const toolbar = document.getElementById("toolbar");
+    const md = results[currentTab];
+    if (md) {
+      content.classList.remove("empty");
+      content.innerHTML = `<div class="markdown">${marked.parse(md)}</div>`;
+      toolbar.style.display = "flex";
+    } else {
+      content.classList.add("empty");
+      content.innerHTML = "（尚未生成）";
+      toolbar.style.display = "none";
+    }
+  }
+  function showLoading(stepName) {
+    const content = document.getElementById("outputContent");
+    content.classList.remove("empty");
+    content.innerHTML = `<div class="loading"><div class="spinner"></div> 正在生成《${stepName}》，请稍候...</div>`;
+  }
+  function showError(msg) { document.getElementById("errorBox").innerHTML = `<div class="error">❌ ${msg}</div>`; }
+  function clearError() { document.getElementById("errorBox").innerHTML = ""; }
+  function markTabDone(tabName) { document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add("done"); }
+  function switchTab(tabName) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add("active");
+    currentTab = tabName;
+  }
+  async function generateFormalJd() {
+    const rawJd = document.getElementById("jdText").value.trim();
+    if (!rawJd) { showError("请先填写岗位描述"); return ""; }
+    const btn = document.getElementById("generateJdBtn");
+    btn.disabled = true;
+    btn.textContent = "⏳ 正在生成 JD...";
+    try {
+      clearError();
+      const jdRes = await fetch("/api/generate_jd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ raw_description: rawJd }) });
+      const jdData = await jdRes.json();
+      if (jdData.error) throw new Error(jdData.error);
+      document.getElementById("formalJdText").value = jdData.markdown;
+      btn.textContent = "✅ 已生成正式 JD";
+      setTimeout(() => { btn.textContent = "✨ 重新生成正式 JD"; btn.disabled = false; }, 1600);
+      return jdData.markdown;
+    } catch (e) {
+      showError(e.message);
+      btn.disabled = false;
+      btn.textContent = "✨ 生成正式 JD";
+      return "";
+    }
+  }
+  document.getElementById("generateJdBtn").addEventListener("click", generateFormalJd);
+  document.getElementById("runBtn").addEventListener("click", async () => {
+    clearError();
+    const file = fileInput.files[0];
+    let candidateName = document.getElementById("candidateName").value.trim() || "候选人";
+    const rawJd = document.getElementById("jdText").value.trim();
+    let jd = document.getElementById("formalJdText").value.trim();
+    const weights = document.getElementById("weightsText").value.trim();
+    const department_style = document.getElementById("departmentStyle").value.trim();
+    if (!file) { showError("请上传简历 PDF"); return; }
+    if (!rawJd && !jd) { showError("请填写岗位描述"); return; }
+    const btn = document.getElementById("runBtn");
+    btn.disabled = true;
+    btn.textContent = "⏳ 处理中...";
+    try {
+      if (!jd) {
+        switchTab("resume"); showLoading("正式岗位描述");
+        jd = await generateFormalJd();
+        if (!jd) throw new Error("正式 JD 生成失败");
+      }
+
+      switchTab("resume"); showLoading("简历解析");
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("candidate_name", "候选人");
+      let res = await fetch("/api/parse_resume", { method: "POST", body: formData });
+      let data = await res.json();
+      if (data.error) throw new Error(data.error);
+      results.resume = data.markdown;
+      candidateName = data.candidate_name || getCandidateName();
+      document.getElementById("candidateName").value = candidateName;
+      markTabDone("resume"); renderCurrent();
+
+      switchTab("pre"); showLoading("面试前作战图");
+      res = await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style }) });
+      data = await res.json();
+      if (data.error) throw new Error(data.error);
+      results.pre = data.markdown;
+      markTabDone("pre"); renderCurrent();
+
+      switchTab("plan"); showLoading("面试追问卡");
+      res = await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, pre_report: results.pre }) });
+      data = await res.json();
+      if (data.error) throw new Error(data.error);
+      results.plan = data.markdown;
+      markTabDone("plan"); renderCurrent();
+      btn.textContent = "✅ 全部完成！";
+      setTimeout(() => { btn.textContent = "🚀 重新分析"; btn.disabled = false; }, 2000);
+    } catch (e) {
+      showError(e.message);
+      btn.disabled = false;
+      btn.textContent = "🚀 开始分析";
+    }
+  });
+  function copyCurrent() {
+    navigator.clipboard.writeText(results[currentTab]);
+    alert("已复制到剪贴板");
+  }
+  function downloadCurrent() {
+    const blob = new Blob([results[currentTab]], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = titles[currentTab];
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  function getCandidateName() {
+    return document.getElementById("candidateName").value.trim() || "候选人";
+  }
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  function buildPrintReport(tabName) {
+    const md = results[tabName];
+    if (!md) return "";
+    return `
+      <section class="print-report">
+        <div class="print-cover">
+          <h1>${escapeHtml(pdfTitles[tabName])}：${escapeHtml(getCandidateName())}</h1>
+          <div class="print-meta">CEO 面试副驾驶 · ${escapeHtml(currentDate)}</div>
+        </div>
+        <div class="markdown">${marked.parse(md)}</div>
+      </section>
+    `;
+  }
+  function printReports(tabNames) {
+    const missing = tabNames.filter(tabName => !results[tabName]);
+    if (missing.length > 0) {
+      showError("请先生成要导出的报告，再导出 PDF。");
+      return;
+    }
+    const printArea = document.getElementById("printArea");
+    printArea.innerHTML = tabNames.map(buildPrintReport).join("");
+    document.body.classList.add("printing");
+    const previousTitle = document.title;
+    document.title = `${getCandidateName()}_面试报告`;
+    setTimeout(() => {
+      window.print();
+      document.title = previousTitle;
+      document.body.classList.remove("printing");
+      printArea.innerHTML = "";
+    }, 100);
+  }
+  function exportCurrentPdf() {
+    printReports([currentTab]);
+  }
+  function exportAllPdf() {
+    const order = ["resume", "pre", "plan", "eval"];
+    const available = order.filter(tab => results[tab]);
+    if (available.length === 0) { showError("请先生成报告，再导出 PDF。"); return; }
+    printReports(available);
+  }
+  document.getElementById("evalBtn").addEventListener("click", async () => {
+    clearError();
+    const candidateName = getCandidateName();
+    const jd = document.getElementById("formalJdText").value.trim() || document.getElementById("jdText").value.trim();
+    const weights = document.getElementById("weightsText").value.trim();
+    const department_style = document.getElementById("departmentStyle").value.trim();
+    const interview_notes = document.getElementById("interviewNotes").value.trim();
+    const selectedFiles = Array.from(interviewFiles.files || []);
+    if (!results.resume || !results.pre || !results.plan) { showError("请先完成前三步分析"); return; }
+    if (!interview_notes && selectedFiles.length === 0) { showError("请先填写面试记录 / 转写，或上传面试反馈附件"); return; }
+    const btn = document.getElementById("evalBtn");
+    btn.disabled = true;
+    btn.textContent = "⏳ 评判中...";
+    try {
+      switchTab("eval"); renderCurrent(); showLoading("面试后评判");
+      const formData = new FormData();
+      formData.append("candidate_name", candidateName);
+      formData.append("resume_md", results.resume);
+      formData.append("jd", jd);
+      formData.append("weights", weights);
+      formData.append("department_style", department_style);
+      formData.append("pre_report", results.pre);
+      formData.append("interview_plan", results.plan);
+      formData.append("interview_notes", interview_notes);
+      selectedFiles.forEach(file => formData.append("interview_files", file));
+      const res = await fetch("/api/post_interview_eval", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      results.eval = data.markdown;
+      markTabDone("eval"); renderCurrent();
+      btn.textContent = "✅ 评判完成！";
+      setTimeout(() => { btn.textContent = "🧮 重新评判"; btn.disabled = false; }, 2000);
+    } catch (e) {
+      showError(e.message);
+      btn.disabled = false;
+      btn.textContent = "🧮 生成面试后评判";
+    }
+  });
+</script>
+</body>
+</html>
