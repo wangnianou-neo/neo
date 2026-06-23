@@ -37,6 +37,10 @@
   .tab.active.done::after { color: white; }
   .output-content { background: white; border-radius: 12px; padding: 32px 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); min-height: 500px; }
   .output-content.empty { color: #95a5a6; font-size: 15px; text-align: center; }
+  .cand-name-bar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; margin-bottom: 18px; background: linear-gradient(135deg,#eef4ff,#fdf6ec); border: 1px solid #dbe7ff; border-radius: 12px; }
+  .cand-name-bar .cn-avatar { width: 34px; height: 34px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .cand-name-bar .cn-name { font-size: 18px; font-weight: 800; color: #1f2d3d; }
+  .cand-name-bar .cn-pos { font-size: 12px; color: #6b7785; margin-left: 4px; }
   .iceberg-card { background: linear-gradient(135deg, #fff 0%, #f8fbff 100%); border: 1px solid #edf1f5; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(44,62,80,0.08); text-align: center; }
   .iceberg-card h2 { color: #2c3e50; font-size: 22px; margin-bottom: 8px; }
   .iceberg-card .highlight { color: #a40000; font-weight: 700; }
@@ -75,6 +79,90 @@
   @keyframes shimmer { 0% { background-position: 0% 0; } 100% { background-position: 220% 0; } }
   .error { color: #e74c3c; padding: 12px; background: #fdf2f0; border-radius: 6px; margin-top: 12px; font-size: 13px; border-left: 4px solid #e74c3c; }
   .step-hint { font-size: 12px; color: #95a5a6; margin-top: 4px; text-align: center; }
+  .batch-box { margin-top: 18px; padding: 14px; border: 1px dashed #c9d6e5; border-radius: 12px; background: #f7faff; transition: border-color .15s, background .15s; }
+  .batch-box.drag-over { border-color: #3498db; border-style: solid; background: #eaf4fd; box-shadow: 0 0 0 3px rgba(52,152,219,.12); }
+  .batch-title { font-size: 14px; font-weight: 700; color: #2c3e50; margin-bottom: 6px; }
+  .batch-desc { font-size: 12px; color: #6b7a8d; line-height: 1.6; margin-bottom: 10px; }
+  .batch-progress { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .bp-row { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 7px 10px; border: 1px solid #e7edf3; border-radius: 8px; background: #fff; }
+  .bp-row .bp-name { flex: 1; font-weight: 600; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bp-row .bp-stat { font-size: 12px; color: #5a6675; white-space: nowrap; }
+  .bp-row.bp-done { border-color: #bfe6cd; background: #f1faf4; }
+  .bp-row.bp-error { border-color: #f3c9c4; background: #fdf2f1; }
+  .bp-row.bp-running { border-color: #cfe0ff; background: #f3f8ff; }
+  .bp-dot { width: 9px; height: 9px; border-radius: 50%; background: #cbd3dc; flex: none; }
+  .bp-done .bp-dot { background: #27ae60; } .bp-error .bp-dot { background: #c0392b; }
+  .bp-running .bp-dot { background: #2b7cff; animation: bp-pulse 1s infinite; }
+  @keyframes bp-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .bp-retry { flex: none; padding: 3px 10px; font-size: 12px; border: 1px solid #d98880; background: #fff; color: #c0392b; border-radius: 6px; cursor: pointer; margin: 0; width: auto; }
+  .bp-retry:hover { background: #fdf2f1; }
+  /* ===== 前司业务与个人贡献模块 ===== */
+  .subtabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 20px; border-bottom: 2px solid #eef2f6; padding-bottom: 0; }
+  .subtab { padding: 9px 16px; font-size: 13.5px; color: #7a8794; cursor: pointer; border-radius: 8px 8px 0 0; border: 1px solid transparent; border-bottom: none; user-select: none; position: relative; top: 2px; }
+  .subtab:hover { color: #5b6ef5; }
+  .subtab.active { color: #4f46e5; font-weight: 700; background: #fff; border-color: #e3e8f0; box-shadow: 0 -2px 0 #4f46e5 inset; }
+  .subtab .cnt { font-size: 11px; color: #aab4c0; margin-left: 4px; }
+  .co-empty { padding: 40px 24px; text-align: center; color: #8a97a6; font-size: 14px; line-height: 1.7; border: 1px dashed #d6deea; border-radius: 12px; background: #fafbfd; }
+  .co-switch { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .co-chip { padding: 8px 14px; border-radius: 10px; border: 1px solid #e1e7ef; background: #fff; cursor: pointer; font-size: 13px; color: #44505e; display: flex; flex-direction: column; gap: 2px; min-width: 96px; }
+  .co-chip:hover { border-color: #b9c4f5; }
+  .co-chip.active { border-color: #4f46e5; background: #f4f3ff; box-shadow: 0 0 0 2px rgba(79,70,229,.12); }
+  .co-chip .cc-name { font-weight: 700; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .co-chip .cc-sub { font-size: 11px; color: #8a97a6; }
+  .co-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+  .co-side { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .co-card { border: 1px solid #eef2f6; border-radius: 14px; padding: 18px 20px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.04); margin-bottom: 16px; }
+  .co-card h3 { margin: 0 0 4px; font-size: 17px; color: #2c3e50; }
+  .co-card .co-role { font-size: 13px; color: #7a8794; margin-bottom: 12px; }
+  .co-quicktags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .co-kv { display: grid; grid-template-columns: 96px 1fr; gap: 6px 10px; font-size: 13.5px; line-height: 1.6; }
+  .co-kv .k { color: #8a97a6; }
+  .co-kv .v { color: #2c3e50; }
+  .co-block-title { font-size: 13px; font-weight: 700; color: #4f46e5; margin: 16px 0 8px; }
+  .tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 9px; border-radius: 999px; font-size: 12px; border: 1px solid; white-space: nowrap; }
+  .tag-high { color: #1f7a4d; background: #eaf7f0; border-color: #bfe6cd; }
+  .tag-mid { color: #2563a8; background: #eaf2fb; border-color: #cfe0ff; }
+  .tag-weak { color: #6b7a8d; background: #f1f4f7; border-color: #e0e6ec; }
+  .tag-pending { color: #b9770e; background: #fdf3e2; border-color: #f5d9a8; }
+  .tag-risk { color: #c0392b; background: #fdecea; border-color: #f3c9c4; }
+  .tag-src { color: #5a6675; background: #f4f6f9; border-color: #e3e8ee; font-size: 11px; }
+  .co-judge { border-left: 3px solid #4f46e5; padding: 6px 0 6px 12px; color: #34404e; font-size: 14px; line-height: 1.7; background: #f8f8ff; border-radius: 0 8px 8px 0; }
+  .co-side-card { border: 1px solid #eef2f6; border-radius: 12px; padding: 14px 16px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+  .co-side-card .sc-h { font-size: 12px; color: #8a97a6; margin-bottom: 4px; font-weight: 700; letter-spacing: .03em; }
+  .co-side-card .sc-v { font-size: 13.5px; color: #2c3e50; line-height: 1.6; }
+  .co-side-card.warn { border-color: #f3d9b0; background: #fffaf2; }
+  .co-side-card.risk { border-color: #f3c9c4; background: #fdf3f2; }
+  .co-scores { display: flex; flex-direction: column; gap: 7px; }
+  .co-score-row { display: grid; grid-template-columns: 96px 1fr 34px; align-items: center; gap: 8px; font-size: 12.5px; }
+  .co-score-row .sl { color: #5a6675; }
+  .co-score-bar { height: 8px; border-radius: 6px; background: #eef1f5; overflow: hidden; }
+  .co-score-fill { height: 100%; border-radius: 6px; }
+  .co-score-row .sv { text-align: right; font-weight: 700; color: #2c3e50; }
+  .co-scnote { font-size: 11.5px; color: #98a2af; margin-top: 8px; line-height: 1.5; }
+  .co-vlist { counter-reset: vq; display: flex; flex-direction: column; gap: 8px; }
+  .co-vitem { display: flex; gap: 10px; padding: 10px 12px; border: 1px solid #eef2f6; border-radius: 10px; background: #fafbfd; font-size: 13.5px; line-height: 1.6; color: #34404e; }
+  .co-vitem .vn { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ede9ff; color: #4f46e5; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .co-vgroup-h { font-size: 14px; font-weight: 700; color: #2c3e50; margin: 14px 0 8px; display: flex; align-items: center; gap: 8px; }
+  details.co-collapse { border: 1px solid #eef2f6; border-radius: 10px; padding: 0; margin-top: 10px; background: #fff; }
+  details.co-collapse > summary { cursor: pointer; padding: 10px 14px; font-size: 13px; font-weight: 600; color: #5a6675; list-style: none; }
+  details.co-collapse > summary::-webkit-details-marker { display: none; }
+  details.co-collapse > summary::before { content: "▸ "; color: #aab4c0; }
+  details.co-collapse[open] > summary::before { content: "▾ "; }
+  details.co-collapse > div { padding: 0 14px 14px; }
+  .co-jump { margin-top: 16px; padding: 12px 16px; border: 1px solid #dfe7ff; border-radius: 10px; background: #f4f6ff; font-size: 13.5px; color: #44505e; }
+  .co-jump a { color: #4f46e5; font-weight: 700; cursor: pointer; text-decoration: none; }
+  .co-jump a:hover { text-decoration: underline; }
+  .co-onelist { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+  .co-oneliner { border: 1px solid #eef2f6; border-radius: 10px; padding: 10px 12px; background: #fafbfd; cursor: pointer; }
+  .co-oneliner:hover { border-color: #b9c4f5; background: #f6f7ff; }
+  .co-oneliner.active { border-color: #4f46e5; background: #f4f3ff; }
+  .co-oneliner .co-ol-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .co-oneliner .co-ol-name { font-weight: 700; color: #2c3e50; font-size: 13.5px; }
+  .co-oneliner .co-ol-judge { font-size: 12.5px; color: #6b7a8d; line-height: 1.6; }
+  @media (max-width: 920px) {
+    .co-layout { grid-template-columns: 1fr; }
+    .co-side { position: static; }
+  }
   /* 流程进度条 */
   .stepper { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; background: white; border-radius: 12px; padding: 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); flex-wrap: wrap; }
   .stepper-item { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 140px; }
@@ -158,7 +246,22 @@
   .hist-item .hi-actions .del { color: #e74c3c; border-color: #f4c4bd; }
   .level-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; }
   .pill-strong { background: #1e8449; } .pill-ok { background: #27ae60; } .pill-caution { background: #e67e22; } .pill-reject { background: #c0392b; }
+  .hist-steps { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+  .hist-step { display: inline-block; padding: 2px 7px; border-radius: 999px; background: #eef2f6; color: #8a97a6; font-size: 11px; font-weight: 700; }
+  .hist-step.done { background: #e8f7ee; color: #1e8449; }
   .hist-empty { color: #95a5a6; text-align: center; padding: 30px; }
+  /* 岗位目录分组 */
+  .hist-group { border: 1px solid #e8edf3; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; background: #fbfcfe; }
+  .hist-group-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .hist-group-title { font-size: 14px; font-weight: 800; color: #2c3e50; }
+  .hist-group-title .hg-count { font-size: 12px; font-weight: 700; color: #8a97a6; margin-left: 6px; }
+  .hist-group-cmp { padding: 5px 12px; border-radius: 7px; border: 1px solid #cfe0ff; background: #eef4ff; color: #2563eb; cursor: pointer; font-size: 12px; font-weight: 700; }
+  .hist-group-cmp:disabled { opacity: .45; cursor: not-allowed; }
+  .hist-item .hi-actions .preview { color: #2563eb; border-color: #cfe0ff; }
+  .hi-preview { margin-top: 8px; border-top: 1px dashed #e3e8ee; padding-top: 8px; font-size: 12px; color: #5a6675; display: none; }
+  .hi-preview.open { display: block; }
+  .hi-preview .pv-row { margin-bottom: 4px; }
+  .hi-preview .pv-row b { color: #2c3e50; }
   /* 对比表 */
   .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .cmp-table th, .cmp-table td { border: 1px solid #e3e8ee; padding: 9px 12px; text-align: left; vertical-align: top; }
@@ -169,6 +272,10 @@
   .cmp-pos-group { border: 1px solid #eef2f6; border-radius: 10px; padding: 12px; }
   .cmp-pos-group h4 { font-size: 13px; margin-bottom: 8px; color: #2c3e50; }
   .cmp-pos-group label { display: block; font-size: 13px; margin-bottom: 5px; cursor: pointer; }
+  .cmp-mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #eef2f6; padding-bottom: 12px; }
+  .cmp-mode { padding: 7px 14px; border: 1px solid #dfe6ee; background: #f5f7fa; color: #5a6675; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .cmp-mode.active { background: var(--brand, #2c3e50); color: #fff; border-color: var(--brand, #2c3e50); }
+  .cmp-summary { background: #f0f7ff; border: 1px solid #cfe3fb; border-left: 4px solid #2b7cff; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; font-weight: 600; color: #1a3a5c; }
   /* CEO 批注 */
   .ceo-note { margin-top: 24px; border: 1px solid #f0d9a8; background: #fffdf6; border-radius: 12px; padding: 16px; }
   .ceo-note h3 { font-size: 15px; margin-bottom: 8px; color: #9a6a00; }
@@ -181,6 +288,77 @@
   .print-cover h1 { font-size: 24px; margin-bottom: 8px; }
   .print-meta { color: #666; font-size: 13px; }
   @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .input-panel { position: static; } }
+
+  /* ===== UI v2 优化主题（覆盖旧样式） ===== */
+  :root{ --brand:#4f46e5; --brand-600:#4338ca; --brand-50:#eef2ff; --ink:#1f2937; --ink-2:#6b7280; --line:#e5e7eb; --ok:#16a34a; --warn:#ea580c; --danger:#dc2626; --radius:14px; --shadow:0 4px 18px rgba(31,41,55,.07); }
+  body{ background:linear-gradient(180deg,#f7f8fc,#eef0f6); color:var(--ink); }
+  /* 顶栏 */
+  .v2-topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px; flex-wrap:wrap; }
+  .v2-brand{ display:flex; align-items:center; gap:12px; }
+  .v2-brand .logo{ width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,var(--brand),#7c3aed); display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:var(--shadow); }
+  .v2-brand h1{ font-size:20px; margin:0; }
+  .v2-brand .sub{ font-size:12px; color:var(--ink-2); }
+  .v2-top-actions{ display:flex; gap:10px; }
+  .v2-top-actions button{ padding:9px 16px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:13px; font-weight:600; color:#374151; box-shadow:var(--shadow); }
+  .v2-top-actions button:hover{ border-color:var(--brand); color:var(--brand); }
+  /* 候选人切换条 */
+  .cand-switch{ display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:10px 16px; margin-bottom:18px; box-shadow:var(--shadow); flex-wrap:wrap; }
+  .cand-switch .cs-av{ width:36px; height:36px; border-radius:50%; background:var(--brand); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .cand-switch .cs-nm{ font-weight:800; font-size:16px; }
+  .cand-switch .cs-pos{ font-size:12px; color:var(--ink-2); }
+  .cand-switch .cs-chips{ margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+  .cs-chip{ padding:5px 12px; border-radius:999px; background:#f1f3f9; font-size:12px; color:#4b5563; cursor:pointer; border:1px solid transparent; }
+  .cs-chip:hover{ border-color:var(--brand); }
+  .cs-chip.active{ background:var(--brand-50); color:var(--brand); font-weight:700; }
+  .cs-chip.new{ background:#fff; border:1px dashed #cbd3e1; color:var(--brand); }
+  /* 面板与折叠分区 */
+  .input-panel{ border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; }
+  .input-panel > h2{ display:none; }
+  .v2-section{ border:1px solid var(--line); border-radius:var(--radius); margin-bottom:16px; overflow:hidden; }
+  .v2-section-head{ display:flex; align-items:center; gap:10px; padding:14px 16px; cursor:pointer; background:linear-gradient(135deg,#fafbff,#f4f6ff); user-select:none; }
+  .v2-section-head .ico{ width:28px; height:28px; border-radius:8px; background:var(--brand-50); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .v2-section-head .t{ font-weight:800; font-size:14px; }
+  .v2-section-head .badge{ margin-left:auto; font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px; background:#e8f7ee; color:var(--ok); }
+  .v2-section-head .badge.todo{ background:#fff4e6; color:var(--warn); }
+  .v2-section-head .caret{ margin-left:8px; color:var(--ink-2); transition:transform .2s; }
+  .v2-section.collapsed .caret{ transform:rotate(-90deg); }
+  .v2-section-body{ padding:16px; }
+  .v2-section.collapsed .v2-section-body{ display:none; }
+  .field input[type="text"], .field textarea, .field select{ border-radius:10px; border-color:var(--line); }
+  .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-50); }
+  .upload-box{ border-radius:12px; }
+  .upload-box:hover{ border-color:var(--brand); background:var(--brand-50); }
+  /* 权重占比可视化 */
+  .wbar{ display:flex; height:14px; border-radius:999px; overflow:hidden; margin:2px 0 10px; border:1px solid var(--line); }
+  .wbar i{ display:block; height:100%; transition:width .25s; }
+  .wlegend{ display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:#4b5563; margin-bottom:10px; }
+  .wlegend span{ display:flex; align-items:center; gap:4px; }
+  .wlegend b{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+  .weight-row input[type="range"]{ accent-color:var(--brand); }
+  /* 主按钮层级 */
+  .btn{ border-radius:11px; font-weight:700; }
+  .btn#runBtn{ background:linear-gradient(135deg,var(--brand),#6d28d9); box-shadow:0 6px 16px rgba(79,70,229,.3); }
+  .btn#runBtn:hover:not(:disabled){ background:linear-gradient(135deg,var(--brand-600),#5b21b6); }
+  .btn#evalBtn{ background:#fff; color:var(--brand); border:1.5px solid var(--brand); }
+  .btn#evalBtn:hover:not(:disabled){ background:var(--brand-50); }
+  .btn#generateJdBtn{ background:#eef2ff; color:#6366f1; }
+  /* 分段 Tab + 状态点 */
+  .tabs{ background:#f1f3f9; border-radius:12px; padding:5px; gap:4px; }
+  .tab{ flex:1; text-align:center; border:none; background:transparent; color:#6b7280; border-radius:9px; padding:9px 8px; font-weight:600; }
+  .tab:hover{ color:var(--brand); }
+  .tab.active{ background:#fff; color:var(--brand); box-shadow:var(--shadow); border:none; }
+  .tab.done::after{ content:""; }
+  .tab .tab-st{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:6px; background:#cbd5e1; vertical-align:middle; }
+  .tab.done .tab-st{ background:var(--ok); }
+  .tab.running .tab-st{ background:var(--warn); animation:pulse 1s infinite; }
+  .tab.error .tab-st{ background:var(--danger); }
+  @keyframes pulse{ 50%{ opacity:.3; } }
+  /* 输出面板 */
+  .output-content{ border-radius:var(--radius); box-shadow:var(--shadow); }
+  .toolbar button{ border-radius:9px; }
+  .toolbar button.primary{ background:var(--brand); }
+  #stepper{ display:none !important; }
+
   @media print {
     @page { size: A4; margin: 14mm; }
     body { background: white; padding: 0; color: #111; font-size: 12pt; }
@@ -197,44 +375,75 @@
 </head>
 <body>
 <div class="container">
-  <h1>🎯 CEO 面试副驾驶</h1>
-  <div class="subtitle">本地版 · 上传简历 → 生成简历解析 + 面试前作战图 + 面试追问卡</div>
+  <div class="v2-topbar">
+    <div class="v2-brand">
+      <div class="logo">🎯</div>
+      <div><h1>CEO 面试副驾驶</h1><div class="sub">本地版 · 简历解析 → 作战图 → 追问卡 → 面试后评判</div></div>
+    </div>
+    <div class="v2-top-actions">
+      <button id="saveArchiveBtn" type="button" onclick="saveCurrentArchive()">💾 保存存档</button>
+      <button id="importBtn" type="button">📥 导入文件</button>
+      <button id="importFolderBtn" type="button">📁 导入文件夹</button>
+      <button id="exportHistoryBtn" type="button">📤 导出历史</button>
+      <button id="historyBtn" type="button">📚 历史记录</button>
+      <button id="compareBtn" type="button">📊 候选人对比</button>
+      <button id="batchTopBtn" type="button">📦 批量分析</button>
+      <input id="importFiles" type="file" accept=".md,.markdown,.json" multiple style="display:none;">
+      <input id="importFolder" type="file" accept=".md,.markdown,.json" multiple webkitdirectory style="display:none;">
+    </div>
+  </div>
+  <div class="cand-switch" id="candSwitch" style="display:none;"></div>
   <div class="layout">
     <div class="input-panel">
-      <h2>📥 输入信息</h2>
-      <div class="field"><label>候选人姓名（自动从简历提取）</label><input type="text" id="candidateName" placeholder="上传简历后自动识别" value="候选人"></div>
-      <div class="field"><label>简历 PDF</label><label class="upload-box" id="uploadBox"><input type="file" id="resumeFile" accept=".pdf"><div class="upload-icon">📄</div><div class="upload-text" id="uploadText">点击或拖拽 PDF 到这里</div></label></div>
-      <div class="field"><label>岗位描述输入</label><textarea id="jdText" rows="6" placeholder="用自然语言描述这个岗位即可，例如：销售负责人，负责抖音渠道增长，带 10 人团队，重视结果和抗压..."></textarea><button class="btn" id="generateJdBtn" type="button">✨ 生成正式 JD</button></div>
-      <div class="field"><label>AI 生成的正式 JD（自动生成，可编辑）</label><textarea id="formalJdText" rows="8" placeholder="点击开始分析后会先自动生成正式 JD，后续分析会使用这里的内容。"></textarea></div>
-      <div class="field"><label>岗位标准库（选岗位自动加载权重）</label><select id="positionSelect"><option value="">请选择岗位（可选）</option></select><div class="step-hint" id="positionHint" style="text-align:left;"></div></div>
-      <div class="field"><label>AMIRO 权重（拖动滑条，自动归一到 100%）</label>
-        <div class="weight-sliders" id="weightSliders">
-          <div class="weight-row"><span class="wl">M 操盘掌控力</span><input type="range" min="0" max="100" value="20" data-dim="M"><span class="wv" data-dim-v="M">20%</span></div>
-          <div class="weight-row"><span class="wl">A 成就动机</span><input type="range" min="0" max="100" value="20" data-dim="A"><span class="wv" data-dim-v="A">20%</span></div>
-          <div class="weight-row"><span class="wl">I 智力学习力</span><input type="range" min="0" max="100" value="20" data-dim="I"><span class="wv" data-dim-v="I">20%</span></div>
-          <div class="weight-row"><span class="wl">R 韧性价值观</span><input type="range" min="0" max="100" value="20" data-dim="R"><span class="wv" data-dim-v="R">20%</span></div>
-          <div class="weight-row"><span class="wl">O 组织适配度</span><input type="range" min="0" max="100" value="20" data-dim="O"><span class="wv" data-dim-v="O">20%</span></div>
-          <div class="weight-total" id="weightTotal">合计 100%</div>
+      <div class="v2-section" id="sectionPre">
+        <div class="v2-section-head" data-toggle="sectionPre"><div class="ico">📝</div><div class="t">面试前准备</div><div class="badge todo" id="preBadge">待填写</div><div class="caret">▾</div></div>
+        <div class="v2-section-body">
+          <div class="field"><label>候选人姓名（自动从简历提取）</label><input type="text" id="candidateName" placeholder="上传简历后自动识别"></div>
+          <div class="field"><label>简历 PDF</label><label class="upload-box" id="uploadBox"><input type="file" id="resumeFile" accept=".pdf"><div class="upload-icon">📄</div><div class="upload-text" id="uploadText">点击或拖拽 PDF 到这里</div></label></div>
+          <div class="field"><label>岗位描述输入</label><textarea id="jdText" rows="5" placeholder="用自然语言描述这个岗位即可，例如：销售负责人，负责抖音渠道增长，带 10 人团队，重视结果和抗压..."></textarea><button class="btn" id="generateJdBtn" type="button">✨ 生成正式 JD</button></div>
+          <div class="field"><label>AI 生成的正式 JD（自动生成，可编辑）</label><textarea id="formalJdText" rows="6" placeholder="点击开始分析后会先自动生成正式 JD，后续分析会使用这里的内容。"></textarea></div>
+          <div class="field"><label>岗位标准库（选岗位自动加载权重）</label><select id="positionSelect"><option value="">请选择岗位（可选）</option></select><div class="step-hint" id="positionHint" style="text-align:left;"></div></div>
+          <div class="field"><label>AMIRO 权重（拖动滑条，自动归一到 100%）</label>
+            <div class="wbar" id="weightBar"></div>
+            <div class="wlegend" id="weightLegend"></div>
+            <div class="weight-sliders" id="weightSliders">
+              <div class="weight-row"><span class="wl">M 操盘掌控力</span><input type="range" min="0" max="100" value="20" data-dim="M"><span class="wv" data-dim-v="M">20%</span></div>
+              <div class="weight-row"><span class="wl">A 成就动机</span><input type="range" min="0" max="100" value="20" data-dim="A"><span class="wv" data-dim-v="A">20%</span></div>
+              <div class="weight-row"><span class="wl">I 智力学习力</span><input type="range" min="0" max="100" value="20" data-dim="I"><span class="wv" data-dim-v="I">20%</span></div>
+              <div class="weight-row"><span class="wl">R 韧性价值观</span><input type="range" min="0" max="100" value="20" data-dim="R"><span class="wv" data-dim-v="R">20%</span></div>
+              <div class="weight-row"><span class="wl">O 组织适配度</span><input type="range" min="0" max="100" value="20" data-dim="O"><span class="wv" data-dim-v="O">20%</span></div>
+              <div class="weight-total" id="weightTotal">合计 100%</div>
+            </div>
+          </div>
+          <div class="field"><label>一票否决项（可选）</label><input type="text" id="vetoText" placeholder="如：诚信问题、无法接受创业强度..."></div>
+          <div class="field"><label>权重汇总（自动生成，可编辑）</label><textarea id="weightsText" rows="3" placeholder="拖动上方滑条会自动生成；也可手动覆盖。"></textarea></div>
+          <div class="talent-reminder"><div class="talent-reminder-title">🧊 人才冰山提醒</div><div class="talent-reminder-text">经验、学历、成功标签只是<strong>冰山上</strong>的信息。面试中更要验证<strong>冰山下</strong>的动机、价值观、岗位胜任力、学习力、韧性和长期潜力。</div></div>
+          <div class="field"><label>部门风格</label><select id="departmentSelect"><option value="">请选择部门（可选）</option></select></div>
+          <div class="field"><label>部门风格说明（可编辑）</label><textarea id="departmentStyle" rows="5" placeholder="选择部门后会自动填入参考说明，也可手动补充该部门的管理者风格、团队节奏、协作与压力环境..."></textarea></div>
+          <div class="field"><label>业务挑战 / 自定义业务场景（可选）</label><textarea id="businessChallenge" rows="5" placeholder="请输入你希望考察候选人的业务问题或真实业务场景。例如：抖音切全域后如何调整打法、新品在抖音如何冷启动、达人直播起不来怎么办、退货率高怎么拆解、To B 项目推进卡住怎么解决等。无需填写具体敏感数值。"></textarea></div>
+          <button class="btn" id="runBtn">🚀 开始分析</button>
+          <div class="step-hint">依次生成：简历解析 → 作战图 → 追问卡</div>
+          <div class="batch-box" id="batchBox">
+            <div class="batch-title">📦 批量分析（同岗位多位候选人）</div>
+            <div class="batch-desc">沿用上方的 <b>正式 JD / 权重 / 部门风格 / 业务挑战</b>，一次上传多份简历 PDF，系统会<b>并发处理（同时 3 人）</b>生成「简历解析 → 作战图 → 追问卡」，并按岗位存入历史，完成后可直接用「📊 候选人对比 → 预筛对比」排序。失败的候选人可单独点「重试」。</div>
+            <label class="upload-box" id="batchUploadBox"><input type="file" id="batchFiles" accept=".pdf" multiple><div class="upload-icon">📚</div><div class="upload-text" id="batchUploadText">点击或拖拽多份简历 PDF 到这里</div></label>
+            <button class="btn" id="batchRunBtn" type="button">📦 批量生成（解析→作战图→追问卡）</button>
+            <div class="batch-progress" id="batchProgress"></div>
+          </div>
         </div>
       </div>
-      <div class="field"><label>一票否决项（可选）</label><input type="text" id="vetoText" placeholder="如：诚信问题、无法接受创业强度..."></div>
-      <div class="field"><label>权重汇总（自动生成，可编辑）</label><textarea id="weightsText" rows="3" placeholder="拖动上方滑条会自动生成；也可手动覆盖。"></textarea></div>
-      <div class="talent-reminder"><div class="talent-reminder-title">🧊 人才冰山提醒</div><div class="talent-reminder-text">经验、学历、成功标签只是<strong>冰山上</strong>的信息。面试中更要验证<strong>冰山下</strong>的动机、价值观、岗位胜任力、学习力、韧性和长期潜力。</div></div>
-      <div class="field"><label>部门风格</label><select id="departmentSelect"><option value="">请选择部门（可选）</option></select></div>
-      <div class="field"><label>部门风格说明（可编辑）</label><textarea id="departmentStyle" rows="6" placeholder="选择部门后会自动填入参考说明，也可手动补充该部门的管理者风格、团队节奏、协作与压力环境..."></textarea></div>
-      <button class="btn" id="runBtn">🚀 开始分析</button>
-      <div class="step-hint">依次生成：简历解析 → 作战图 → 追问卡</div>
-      <div class="field" style="margin-top:24px;"><label>面试记录 / 转写（面试后填写）</label><textarea id="interviewNotes" rows="8" placeholder="粘贴面试笔记、问答记录或录音转写..."></textarea></div>
-      <div class="field"><label>面试反馈附件（可多选）</label><label class="upload-box" id="interviewUploadBox"><input type="file" id="interviewFiles" multiple accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp,.bmp,.tiff,.tif"><div class="upload-icon">📝</div><div class="upload-text" id="interviewUploadText">点击或拖拽面试记录附件到这里</div></label><div class="step-hint" id="interviewFilesHint">支持 PDF、Word(.docx)、图片、TXT、Markdown，可一次上传多份。</div></div>
-      <button class="btn" id="evalBtn">🧮 生成面试后评判</button>
-      <div class="step-hint">需先完成前三步，并填写面试记录或上传附件</div>
+      <div class="v2-section collapsed" id="sectionPost">
+        <div class="v2-section-head" data-toggle="sectionPost"><div class="ico">🧮</div><div class="t">面试后评判</div><div class="badge todo" id="postBadge">待面试</div><div class="caret">▾</div></div>
+        <div class="v2-section-body">
+          <div class="field"><label>面试记录 / 转写（面试后填写）</label><textarea id="interviewNotes" rows="7" placeholder="粘贴面试笔记、问答记录或录音转写..."></textarea></div>
+          <div class="field"><label>面试反馈附件（可多选）</label><label class="upload-box" id="interviewUploadBox"><input type="file" id="interviewFiles" multiple accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp,.bmp,.tiff,.tif"><div class="upload-icon">📝</div><div class="upload-text" id="interviewUploadText">点击或拖拽面试记录附件到这里</div></label><div class="step-hint" id="interviewFilesHint">支持 PDF、Word(.docx)、图片、TXT、Markdown，可一次上传多份。</div></div>
+          <button class="btn" id="evalBtn">🧮 生成面试后评判</button>
+          <div class="step-hint">需先完成前三步，并填写面试记录或上传附件</div>
+        </div>
+      </div>
       <div id="errorBox"></div>
     </div>
     <div class="output-panel">
-      <div class="action-row">
-        <button id="historyBtn" type="button">📚 历史记录</button>
-        <button id="compareBtn" type="button">📊 候选人对比</button>
-      </div>
       <div class="stepper" id="stepper">
         <div class="stepper-item active" data-step="resume"><div class="stepper-dot">1</div><div class="stepper-label">上传简历</div></div>
         <div class="stepper-line"></div>
@@ -245,12 +454,12 @@
         <div class="stepper-item" data-step="eval"><div class="stepper-dot">4</div><div class="stepper-label">面试后评判</div></div>
       </div>
       <div class="tabs">
-        <div class="tab active" data-tab="resume">① 简历解析</div>
-        <div class="tab" data-tab="pre">② 面试前作战图</div>
-        <div class="tab" data-tab="plan">③ 面试追问卡</div>
-        <div class="tab" data-tab="eval">④ 面试后评判</div>
+        <div class="tab active" data-tab="resume">① 简历解析<span class="tab-st"></span></div>
+        <div class="tab" data-tab="pre">② 作战图<span class="tab-st"></span></div>
+        <div class="tab" data-tab="plan">③ 追问卡<span class="tab-st"></span></div>
+        <div class="tab" data-tab="eval">④ 面试后评判<span class="tab-st"></span></div>
       </div>
-      <div class="toolbar" id="toolbar" style="display:none;"><button onclick="copyCurrent()">📋 复制 Markdown</button><button onclick="downloadCurrent()">💾 下载 .md</button><button onclick="exportCurrentPdf()">📄 导出当前 PDF</button><button class="primary" onclick="exportAllPdf()">📱 导出全部 PDF</button></div>
+      <div class="toolbar" id="toolbar" style="display:none;"><button id="regenBtn" onclick="regenerateCurrent()">🔄 重新生成本步骤</button><button onclick="copyCurrent()">📋 复制 Markdown</button><button onclick="downloadCurrent()">💾 下载 .md</button><button onclick="exportCurrentPdf()">📄 导出当前 PDF</button><button onclick="exportAllMd()" title="导出当前候选人的全部 Markdown + JSON，可用于备份和恢复">🗂️ 导出全部 MD<span style="font-size:11px;opacity:.75;margin-left:4px;">= 保存当前候选人存档</span></button><button class="primary" onclick="exportAllPdf()">📱 导出全部 PDF</button></div>
       <div class="output-content empty" id="outputContent"><div class="iceberg-card"><h2>AMIRO 人才评估<span class="highlight">冰山模型</span></h2><p>不只看经验和履历，更要识别冰山下的胜任力、价值观、动机和长期潜力。</p><div class="iceberg-image-wrap"><img class="iceberg-image" src="assets/talent-iceberg.jpg" alt="人才冰山模型" onerror="this.parentElement.style.display='none'; this.parentElement.nextElementSibling.style.display='block';"></div><div class="iceberg-note" style="display:none;">图片文件尚未放入项目：请将冰山图保存为 <strong>assets/talent-iceberg.jpg</strong> 后刷新页面。</div><div class="iceberg-note"><span class="required-red">【红色为必评估项】</span>经验、学历、成功标签通常显而易见；<br>真正决定长期表现的，是岗位胜任力、综合能力、动机和价值观。</div></div></div>
     </div>
   </div>
@@ -343,7 +552,15 @@
     marketing: { name: "市场/品牌", weights: { M: 20, A: 25, I: 25, R: 10, O: 20 }, veto: "无内容敏感度、无数据意识", competency: "内容敏感度、趋势捕捉、传播力、数据复盘、跨部门协同" },
     hr: { name: "人力/HR", weights: { M: 20, A: 15, I: 20, R: 20, O: 25 }, veto: "价值观不正、保密性差", competency: "判断力、沟通力、价值观、组织敏感度、冲突处理" },
     finance: { name: "财务/法务", weights: { M: 20, A: 10, I: 30, R: 20, O: 20 }, veto: "合规意识弱、原则性差", competency: "专业严谨、风险意识、原则性、数据准确、业务沟通" },
-    general_manager: { name: "业务负责人/GM", weights: { M: 40, A: 25, I: 15, R: 10, O: 10 }, veto: "无操盘经验、无法担责、价值观问题", competency: "战略落地、资源整合、团队搭建、结果担当、抗不确定性" }
+    general_manager: { name: "业务负责人/GM", weights: { M: 40, A: 25, I: 15, R: 10, O: 10 }, veto: "无操盘经验、无法担责、价值观问题", competency: "战略落地、资源整合、团队搭建、结果担当、抗不确定性" },
+    procurement: { name: "供应链-采购", weights: { M: 30, A: 20, I: 20, R: 15, O: 15 }, veto: "廉洁问题、收受回扣、与供应商利益输送", competency: "成本谈判、供应商管理、品质交期把控、廉洁合规、风险控制" },
+    supply_chain_planning: { name: "供应链-计划/SCM", weights: { M: 30, A: 15, I: 30, R: 10, O: 15 }, veto: "数据失真、无法协调产销、缺乏全局视角", competency: "需求预测、产销协同、库存周转、交付保障、数据建模" },
+    product_marketing: { name: "产品营销/PMM", weights: { M: 25, A: 25, I: 25, R: 10, O: 15 }, veto: "无市场洞察、不懂产品、无法连接研发与市场", competency: "产品定位、卖点提炼、竞品分析、上市策略、跨部门协同" },
+    gtm: { name: "GTM/市场进入策略", weights: { M: 30, A: 25, I: 25, R: 5, O: 15 }, veto: "无打法落地能力、只会讲概念、无数据闭环", competency: "市场进入策略、渠道铺设、增长打法、ROI 闭环、操盘落地" },
+    rd_structural: { name: "研发-结构工程师", weights: { M: 20, A: 15, I: 40, R: 10, O: 15 }, veto: "结构设计造假、无量产经验、不懂工艺", competency: "结构设计、DFM/DFA、材料工艺、模具量产、可靠性验证" },
+    rd_electronic: { name: "研发-电子/硬件工程师", weights: { M: 20, A: 15, I: 40, R: 10, O: 15 }, veto: "技术造假、无法独立调试、不懂量产", competency: "电路设计、硬件调试、EMC/可靠性、BOM 成本、量产导入" },
+    rd_embedded: { name: "研发-嵌入式/固件", weights: { M: 20, A: 15, I: 40, R: 10, O: 15 }, veto: "技术造假、无法定位底层问题", competency: "嵌入式开发、驱动调试、实时系统、软硬协同、性能优化" },
+    quality: { name: "品质/QA-QC", weights: { M: 25, A: 15, I: 25, R: 20, O: 15 }, veto: "数据造假、放行不合格品、原则性差", competency: "品质体系、过程管控、问题分析(8D)、供应商品质、合规严谨" }
   };
   const positionSelect = document.getElementById("positionSelect");
   const positionHint = document.getElementById("positionHint");
@@ -368,11 +585,20 @@
     });
     return out;
   }
+  const WEIGHT_COLORS = { M: "#4f46e5", A: "#7c3aed", I: "#0ea5e9", R: "#f59e0b", O: "#10b981" };
+  function renderWeightBar(w) {
+    const bar = document.getElementById("weightBar");
+    const legend = document.getElementById("weightLegend");
+    if (!bar || !legend) return;
+    bar.innerHTML = sliders.map(s => { const d = s.dataset.dim; return `<i style="width:${w[d]}%;background:${WEIGHT_COLORS[d] || "#999"}"></i>`; }).join("");
+    legend.innerHTML = sliders.map(s => { const d = s.dataset.dim; return `<span><b style="background:${WEIGHT_COLORS[d] || "#999"}"></b>${d} ${w[d]}%</span>`; }).join("");
+  }
   function syncWeightsText() {
     const w = normalizedWeights();
     sliders.forEach(s => { document.querySelector(`[data-dim-v="${s.dataset.dim}"]`).textContent = w[s.dataset.dim] + "%"; });
     weightTotal.textContent = "合计 100%";
     weightTotal.className = "weight-total ok";
+    renderWeightBar(w);
     const parts = sliders.map(s => `${s.dataset.dim} ${w[s.dataset.dim]}%`).join("，");
     const veto = vetoText.value.trim();
     weightsText.value = parts + (veto ? `；一票否决：${veto}` : "");
@@ -541,10 +767,226 @@
       .replace(/✅/g, '<span class="pass-mark">✅</span>')
       .replace(/❌/g, '<span class="fail-mark">❌</span>');
   }
+  function candNameBarHtml() {
+    const name = getCandidateName();
+    const pos = getPositionName();
+    const initial = escapeHtml(name.slice(0, 1));
+    const posHtml = pos && pos !== "未分类岗位" ? `<span class="cn-pos">· ${escapeHtml(pos)}</span>` : "";
+    return `<div class="cand-name-bar"><div class="cn-avatar">${initial}</div><div><span class="cn-name">${escapeHtml(name)}</span>${posHtml}</div></div>`;
+  }
+  // ===== 前司业务与个人贡献模块 =====
+  const COMPANY_RE = /```company\s*([\s\S]*?)```/;
+  let resumeSubTab = "overview";
+  let coCompanyIdx = 0;
+  function parseCompany(md) {
+    const m = (md || "").match(COMPANY_RE);
+    if (!m) return { company: null, hadBlock: false, body: md };
+    let company = null;
+    try { company = JSON.parse(m[1].trim()); } catch (e) { company = null; }
+    let body = (md || "").replace(COMPANY_RE, "").trim();
+    // 移除结构化数据块前残留的标题段（已用卡片渲染，避免“总览”出现空标题）
+    body = body.replace(/\n*#{1,6}\s*[^\n]*前司业务与个人贡献判断[\s\S]*$/, "").trim();
+    return { company, hadBlock: true, body };
+  }
+  function relevanceTagClass(rel) {
+    const t = (rel || "").trim();
+    if (t.includes("高相关")) return "tag-high";
+    if (t.includes("中相关")) return "tag-mid";
+    if (t.includes("待")) return "tag-pending";
+    return "tag-weak";
+  }
+  function credibilityTagClass(v) {
+    const t = (v || "").trim();
+    if (t.includes("明确证据")) return "tag-high";
+    if (t.includes("平台红利") || t.includes("上级") || t.includes("团队主导") || t.includes("包装")) return "tag-risk";
+    if (t.includes("暂无") || t.includes("不清")) return "tag-pending";
+    return "tag-weak";
+  }
+  function sourceTagsHtml(sources) {
+    if (!Array.isArray(sources) || !sources.length) return "";
+    return sources.map(s => `<span class="tag tag-src">${escapeHtml(s)}</span>`).join(" ");
+  }
+  function joinArr(a) { return Array.isArray(a) ? a.filter(Boolean).join("、") : (a || ""); }
+  const SCORE_LABELS = {
+    company_fit: "公司岗位相关度", category_fit: "品类经验相关度", channel_fit: "渠道经验相关度",
+    operation_completeness: "操盘完整度", contribution_credibility: "个人贡献可信度",
+    business_coreness: "业务核心程度", transfer_value: "经验迁移价值"
+  };
+  function scoreBarsHtml(scores) {
+    if (!scores || typeof scores !== "object") return "";
+    const rows = Object.keys(SCORE_LABELS).filter(k => scores[k] != null).map(k => {
+      const v = Math.max(0, Math.min(100, Number(scores[k]) || 0));
+      const c = scoreColor(v, 100);
+      return `<div class="co-score-row"><span class="sl">${SCORE_LABELS[k]}</span><span class="co-score-bar"><span class="co-score-fill" style="width:${v}%;background:${c}"></span></span><span class="sv" style="color:${c}">${v}</span></div>`;
+    }).join("");
+    if (!rows) return "";
+    return `<div class="co-scores">${rows}</div><div class="co-scnote">以上评分为面试前初步判断，需要在面试后根据候选人回答重新校准。</div>`;
+  }
+  function companyChipHtml(c, i) {
+    const rel = c.relevance || "信息不足";
+    return `<div class="co-chip ${i === coCompanyIdx ? "active" : ""}" data-co="${i}">
+        <span class="cc-name">${escapeHtml(c.name || "未命名公司")}</span>
+        <span class="cc-sub">${escapeHtml(c.period || "")} · ${escapeHtml(rel)}</span>
+      </div>`;
+  }
+  function companyChipsHtml(companies) {
+    const idx = companies.map((c, i) => i);
+    const focus = idx.filter(i => companies[i].focus !== false);
+    const rest = idx.filter(i => companies[i].focus === false);
+    const shown = focus.length ? focus : idx;
+    const hidden = focus.length ? rest : [];
+    let html = `<div class="co-switch">` + shown.map(i => companyChipHtml(companies[i], i)).join("") + `</div>`;
+    if (hidden.length) {
+      const restActive = hidden.includes(coCompanyIdx);
+      const lines = hidden.map(i => {
+        const c = companies[i];
+        const judge = c.one_line_judgment || c.relevance_reason || "暂无更多判断，可在面试中确认。";
+        return `<div class="co-oneliner ${i === coCompanyIdx ? "active" : ""}" data-co="${i}">
+          <div class="co-ol-top"><span class="co-ol-name">${escapeHtml(c.name || "公司")}</span><span class="tag ${relevanceTagClass(c.relevance)}">${escapeHtml(c.relevance || "信息不足")}</span></div>
+          <div class="co-ol-judge">${escapeHtml(judge)}</div>
+        </div>`;
+      }).join("");
+      html += `<details class="co-collapse"${restActive ? " open" : ""}><summary>其余 ${hidden.length} 家公司（相关度较低，点开查看判断）</summary><div class="co-onelist">${lines}</div></details>`;
+    }
+    return html;
+  }
+  function companyBusinessCard(c) {
+    const tags = [
+      c.scale ? `<span class="tag tag-weak">${escapeHtml(c.scale)}</span>` : "",
+      c.company_type ? `<span class="tag tag-weak">${escapeHtml(c.company_type)}</span>` : "",
+      (Array.isArray(c.products) && c.products.length) ? `<span class="tag tag-weak">${escapeHtml(joinArr(c.products))}</span>` : "",
+      c.relevance ? `<span class="tag ${relevanceTagClass(c.relevance)}">与觅光：${escapeHtml(c.relevance)}</span>` : "",
+      c.candidate_role ? `<span class="tag tag-mid">${escapeHtml(c.candidate_role)}</span>` : "",
+      c.operation_completeness ? `<span class="tag tag-weak">${escapeHtml(c.operation_completeness)}</span>` : ""
+    ].filter(Boolean).join(" ");
+    const kv = [
+      ["公司类型", c.company_type], ["大概体量", c.scale], ["核心业务", c.core_business],
+      ["主要品牌", joinArr(c.brands)], ["主要产品/品类", joinArr(c.products)],
+      ["核心渠道", joinArr(c.channels)], ["客户类型", c.customer_type], ["商业模式", c.business_model],
+      ["行业位置", c.industry_position], ["与主营关系", c.relation_to_main_business]
+    ].filter(([, v]) => v && String(v).trim()).map(([k, v]) => `<div class="k">${k}</div><div class="v">${escapeHtml(String(v))}</div>`).join("");
+    return `
+      <div class="co-card">
+        <h3>${escapeHtml(c.name || "未命名公司")}</h3>
+        <div class="co-role">${escapeHtml(c.role || "")}${c.period ? " ｜ " + escapeHtml(c.period) : ""}</div>
+        <div class="co-quicktags">${tags}</div>
+        ${c.one_line_judgment ? `<div class="co-judge">${escapeHtml(c.one_line_judgment)}</div>` : ""}
+        <div class="co-block-title">公司业务背景</div>
+        <div class="co-kv">${kv || '<div class="v">暂无可靠信息，可在面试中进一步确认。</div>'}</div>
+        ${c.relevance_reason ? `<div class="co-block-title">与觅光相关性判断</div><div class="co-kv"><div class="k">${escapeHtml(c.relevance || "")}</div><div class="v">${escapeHtml(c.relevance_reason)}</div></div>` : ""}
+        ${sourceTagsHtml(c.sources) ? `<div class="co-block-title">数据来源 / 可信度</div><div>${sourceTagsHtml(c.sources)}</div>` : ""}
+      </div>`;
+  }
+  function companySideHtml(c) {
+    return `
+      <div class="co-side">
+        ${c.one_line_judgment ? `<div class="co-side-card"><div class="sc-h">一句话业务判断</div><div class="sc-v">${escapeHtml(c.one_line_judgment)}</div></div>` : ""}
+        ${c.value_point ? `<div class="co-side-card"><div class="sc-h">核心亮点</div><div class="sc-v">${escapeHtml(c.value_point)}</div></div>` : ""}
+        ${c.biggest_doubt ? `<div class="co-side-card warn"><div class="sc-h">核心疑点</div><div class="sc-v">${escapeHtml(c.biggest_doubt)}</div></div>` : ""}
+        ${c.platform_dividend_risk ? `<div class="co-side-card risk"><div class="sc-h">平台红利风险</div><div class="sc-v">${escapeHtml(c.platform_dividend_risk)}</div></div>` : ""}
+        <div class="co-side-card"><div class="sc-h">是否值得重点深挖</div><div class="sc-v">${escapeHtml(c.worth_deep_dive || "待判断")}</div></div>
+      </div>`;
+  }
+  function companyContributionCard(c) {
+    const kv = [
+      ["所在业务重要性", c.business_coreness_desc], ["候选人角色", c.candidate_role],
+      ["操盘完整度", c.operation_completeness], ["覆盖环节", joinArr(c.operation_covered)],
+      ["主要责任", c.responsibilities], ["明确成果", c.achievements]
+    ].filter(([, v]) => v && String(v).trim()).map(([k, v]) => `<div class="k">${k}</div><div class="v">${escapeHtml(String(v))}</div>`).join("");
+    const credTag = c.contribution_credibility ? `<span class="tag ${credibilityTagClass(c.contribution_credibility)}">${escapeHtml(c.contribution_credibility)}</span>` : "";
+    const transfer = [
+      ["经验迁移价值", c.transfer_value], ["相似点", c.transfer_similar],
+      ["差异点", c.transfer_diff], ["最大迁移风险", c.transfer_risk]
+    ].filter(([, v]) => v && String(v).trim()).map(([k, v]) => `<div class="k">${k}</div><div class="v">${escapeHtml(String(v))}</div>`).join("");
+    return `
+      <div class="co-card">
+        <h3>${escapeHtml(c.name || "未命名公司")}</h3>
+        <div class="co-role">${escapeHtml(c.role || "")}${c.period ? " ｜ " + escapeHtml(c.period) : ""}</div>
+        <div class="co-block-title">候选人的位置与贡献</div>
+        <div class="co-kv">${kv || '<div class="v">暂无足够信息。</div>'}</div>
+        <div class="co-block-title">个人贡献可信度</div>
+        <div>${credTag} ${c.platform_dividend_risk ? `<span class="tag tag-pending">平台红利风险</span>` : ""}</div>
+        ${c.platform_dividend_risk ? `<div class="co-kv" style="margin-top:6px"><div class="k">风险说明</div><div class="v">${escapeHtml(c.platform_dividend_risk)}</div></div>` : ""}
+        ${transfer ? `<div class="co-block-title">经验迁移分析</div><div class="co-kv">${transfer}</div>` : ""}
+        ${scoreBarsHtml(c.scores) ? `<div class="co-block-title">初步评分（0-100）</div>${scoreBarsHtml(c.scores)}` : ""}
+      </div>`;
+  }
+  function companyChecklistHtml(companies) {
+    const groupHtml = c => {
+      const vs = Array.isArray(c.validations) ? c.validations.filter(Boolean) : [];
+      if (!vs.length) return "";
+      const items = vs.map((v, i) => `<div class="co-vitem"><span class="vn">${i + 1}</span><span>${escapeHtml(v)}</span></div>`).join("");
+      return `<div class="co-vgroup-h">🏢 ${escapeHtml(c.name || "公司")}<span class="tag ${relevanceTagClass(c.relevance)}">${escapeHtml(c.relevance || "信息不足")}</span></div><div class="co-vlist">${items}</div>`;
+    };
+    const focusCos = companies.filter(c => c.focus !== false);
+    const restCos = focusCos.length ? companies.filter(c => c.focus === false) : [];
+    const shown = (focusCos.length ? focusCos : companies).map(groupHtml).filter(Boolean).join("");
+    const restItems = restCos.map(groupHtml).filter(Boolean).join("");
+    let html = shown;
+    if (restItems) {
+      html += `<details class="co-collapse"><summary>其余公司的验证问题（相关度较低）</summary><div>${restItems}</div></details>`;
+    }
+    return html || `<div class="co-empty">暂未生成验证清单。</div>`;
+  }
+  function renderResumeReport(content, body, company) {
+    const companies = Array.isArray(company.companies) ? company.companies : [];
+    if (coCompanyIdx >= companies.length || coCompanyIdx < 0) {
+      const firstFocus = companies.findIndex(c => c.focus !== false);
+      coCompanyIdx = firstFocus >= 0 ? firstFocus : 0;
+    }
+    const subtabs = [
+      ["overview", "履历总览", ""],
+      ["business", "前司业务", companies.length ? `<span class="cnt">${companies.length}</span>` : ""],
+      ["contribution", "个人贡献", ""],
+      ["checklist", "验证清单", ""]
+    ];
+    const nav = `<div class="subtabs">` + subtabs.map(([k, label, cnt]) =>
+      `<div class="subtab ${resumeSubTab === k ? "active" : ""}" data-sub="${k}">${label}${cnt}</div>`).join("") + `</div>`;
+    let panel = "";
+    if (resumeSubTab === "overview") {
+      const hint = companies.length ?
+        `<div class="co-jump">🏢 已识别 <b>${companies.length}</b> 家前司，<a data-sub="business">查看前司业务与个人贡献判断 →</a></div>` : "";
+      panel = `<div class="markdown">${marked.parse(body || "")}</div>${hint}`;
+    } else if (!companies.length) {
+      panel = `<div class="co-empty">暂未获得足够可靠的公司信息，可在面试中进一步确认。</div>`;
+    } else if (resumeSubTab === "business") {
+      const c = companies[coCompanyIdx];
+      panel = companyChipsHtml(companies) + `<div class="co-layout"><div class="co-main">${companyBusinessCard(c)}</div>${companySideHtml(c)}</div>`;
+    } else if (resumeSubTab === "contribution") {
+      panel = companyChipsHtml(companies) + companyContributionCard(companies[coCompanyIdx]);
+    } else if (resumeSubTab === "checklist") {
+      panel = companyChecklistHtml(companies);
+    }
+    content.innerHTML = candNameBarHtml() + nav + `<div class="co-panel">${panel}</div>`;
+    const ov = content.querySelector(".markdown");
+    if (ov) enhanceMarkdown(ov);
+    content.querySelectorAll("[data-sub]").forEach(el => el.addEventListener("click", () => {
+      resumeSubTab = el.dataset.sub; renderResumeReport(content, body, company);
+    }));
+    content.querySelectorAll("[data-co]").forEach(el => el.addEventListener("click", () => {
+      coCompanyIdx = +el.dataset.co; renderResumeReport(content, body, company);
+    }));
+  }
+  function companyPrintHtml(company) {
+    const companies = Array.isArray(company.companies) ? company.companies : [];
+    if (!companies.length) return "";
+    const cards = companies.map(c => companyBusinessCard(c) + companyContributionCard(c) +
+      (Array.isArray(c.validations) && c.validations.length ?
+        `<div class="co-block-title">必须面试验证</div><div class="co-vlist">${c.validations.filter(Boolean).map((v, i) => `<div class="co-vitem"><span class="vn">${i + 1}</span><span>${escapeHtml(v)}</span></div>`).join("")}</div>` : "")
+    ).join("");
+    return `<h2 style="margin-top:24px">🏢 前司业务与个人贡献判断</h2>${cards}`;
+  }
   function renderReport(content, md) {
-    const { data, body } = parseScorecard(md);
+    const { company, hadBlock, body: md2 } = parseCompany(md);
+    if (company && Array.isArray(company.companies)) {
+      renderResumeReport(content, md2, company);
+      return;
+    }
+    const { data, body } = parseScorecard(md2);
     const vizHtml = data ? buildScorecardHtml(data) : "";
-    content.innerHTML = vizHtml + `<div class="markdown">${marked.parse(body)}</div>`;
+    const warnHtml = (hadBlock && !company) ?
+      `<div class="error" style="margin-bottom:14px">⚠️ 检测到「前司业务与个人贡献判断」结构化数据，但解析失败（很可能是生成被截断或 JSON 不完整）。请点击「重新生成本步骤」重试；如反复出现，可调高 MAX_TOKENS 后重启服务。</div>` : "";
+    content.innerHTML = candNameBarHtml() + warnHtml + vizHtml + `<div class="markdown">${marked.parse(body)}</div>`;
     enhanceMarkdown(content.querySelector(".markdown"));
   }
   function renderCurrent() {
@@ -613,6 +1055,32 @@
       const status = state === "done" ? "已完成" : state === "running" ? "生成中" : state === "queued" ? "等待中" : state === "error" ? "失败" : "未开始";
       label.innerHTML = `${base}<small>${status}</small>`;
     });
+    syncTabStatus();
+    syncSectionBadges();
+  }
+  function syncTabStatus() {
+    document.querySelectorAll(".tabs .tab").forEach(tab => {
+      const step = tab.dataset.tab;
+      const state = results[step] ? "done" : (stepState[step] || "idle");
+      tab.classList.toggle("done", state === "done");
+      tab.classList.toggle("running", state === "running");
+      tab.classList.toggle("error", state === "error");
+    });
+  }
+  function syncSectionBadges() {
+    const preDone = ["resume", "pre", "plan"].filter(k => results[k]).length;
+    const preBadge = document.getElementById("preBadge");
+    if (preBadge) {
+      if (preDone === 3) { preBadge.textContent = "已完成"; preBadge.classList.remove("todo"); }
+      else if (preDone > 0) { preBadge.textContent = `进行中 ${preDone}/3`; preBadge.classList.remove("todo"); }
+      else { preBadge.textContent = "待填写"; preBadge.classList.add("todo"); }
+    }
+    const postBadge = document.getElementById("postBadge");
+    if (postBadge) {
+      if (results.eval) { postBadge.textContent = "已完成"; postBadge.classList.remove("todo"); }
+      else if (preDone === 3) { postBadge.textContent = "可开始"; postBadge.classList.remove("todo"); }
+      else { postBadge.textContent = "待面试"; postBadge.classList.add("todo"); }
+    }
   }
   function showLoading(stepName, tabName = currentTab) {
     setStepState(tabName, "running");
@@ -672,8 +1140,10 @@
     let jd = document.getElementById("formalJdText").value.trim();
     const weights = document.getElementById("weightsText").value.trim();
     const department_style = document.getElementById("departmentStyle").value.trim();
+    const business_challenge = document.getElementById("businessChallenge").value.trim();
     if (!file) { showError("请上传简历 PDF"); return; }
     if (!rawJd && !jd) { showError("请填写岗位描述"); return; }
+    currentRecordId = "";
     const btn = document.getElementById("runBtn");
     btn.disabled = true;
     btn.textContent = "⏳ 处理中...";
@@ -698,22 +1168,25 @@
       document.getElementById("candidateName").value = candidateName;
       stepState.resume = "done";
       markTabDone("resume"); renderCurrent();
+      saveCurrentToHistory({ status: "简历已解析", resumeFileName: file.name });
 
       switchTab("pre"); showLoading("面试前作战图", "pre");
-      res = await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style }) });
+      res = await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) });
       data = await res.json();
       if (data.error) throw new Error(data.error);
       results.pre = data.markdown;
       stepState.pre = "done";
       markTabDone("pre"); renderCurrent();
+      saveCurrentToHistory({ status: "作战图已生成", resumeFileName: file.name });
 
       switchTab("plan"); showLoading("面试追问卡", "plan");
-      res = await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, pre_report: results.pre }) });
+      res = await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) });
       data = await res.json();
       if (data.error) throw new Error(data.error);
       results.plan = data.markdown;
       stepState.plan = "done";
       markTabDone("plan"); renderCurrent();
+      saveCurrentToHistory({ status: "追问卡已生成", resumeFileName: file.name });
       btn.textContent = "✅ 全部完成！";
       setTimeout(() => { btn.textContent = "🚀 重新分析"; btn.disabled = false; }, 2000);
     } catch (e) {
@@ -723,6 +1196,231 @@
       btn.textContent = "🚀 开始分析";
     }
   });
+  // ===== 批量分析：同岗位多位候选人（并发 + 重试）=====
+  const BATCH_CONCURRENCY = 3;
+  const batchFilesInput = document.getElementById("batchFiles");
+  const batchUploadText = document.getElementById("batchUploadText");
+  const batchUploadBox = document.getElementById("batchUploadBox");
+  const batchState = { files: [], items: [], ctx: null };
+  const batchBox = document.getElementById("batchBox");
+  function syncBatchUploadText(extra) {
+    const n = (batchFilesInput.files || []).length;
+    batchUploadText.textContent = n ? `已选择 ${n} 份简历 PDF${extra || ""}` : "点击或拖拽多份简历 PDF 到这里";
+    batchUploadBox.classList.toggle("has-file", n > 0);
+  }
+  function addBatchFiles(fileList) {
+    const dropped = Array.from(fileList || []);
+    const pdfs = dropped.filter(f => /\.pdf$/i.test(f.name) || f.type === "application/pdf");
+    if (!pdfs.length) { showError("请拖拽 PDF 格式的简历文件。"); return; }
+    const dt = new DataTransfer();
+    const seen = new Set();
+    Array.from(batchFilesInput.files || []).forEach(f => { dt.items.add(f); seen.add(f.name + "_" + f.size); });
+    let added = 0;
+    pdfs.forEach(f => {
+      const key = f.name + "_" + f.size;
+      if (seen.has(key)) return;
+      dt.items.add(f); seen.add(key); added++;
+    });
+    batchFilesInput.files = dt.files;
+    const skipped = dropped.length - pdfs.length;
+    const dup = pdfs.length - added;
+    const notes = [];
+    if (skipped) notes.push(`忽略 ${skipped} 个非 PDF`);
+    if (dup) notes.push(`去重 ${dup} 个`);
+    syncBatchUploadText(notes.length ? `（本次新增 ${added}，${notes.join("、")}）` : "");
+  }
+  batchFilesInput.addEventListener("change", () => syncBatchUploadText());
+  ["dragenter", "dragover"].forEach(ev => batchBox.addEventListener(ev, e => {
+    e.preventDefault(); batchBox.classList.add("drag-over");
+  }));
+  ["dragleave", "dragend"].forEach(ev => batchBox.addEventListener(ev, e => {
+    if (ev === "dragleave" && batchBox.contains(e.relatedTarget)) return;
+    batchBox.classList.remove("drag-over");
+  }));
+  batchBox.addEventListener("drop", e => {
+    e.preventDefault();
+    batchBox.classList.remove("drag-over");
+    addBatchFiles(e.dataTransfer.files);
+  });
+  function renderBatchProgress() {
+    const box = document.getElementById("batchProgress");
+    box.innerHTML = batchState.items.map((it, i) => `
+      <div class="bp-row bp-${it.state}">
+        <span class="bp-dot"></span>
+        <span class="bp-name">${escapeHtml(it.name)}</span>
+        <span class="bp-stat">${escapeHtml(it.stat)}</span>
+        ${it.state === "error" ? `<button class="bp-retry" data-retry="${i}" type="button">重试</button>` : ""}
+      </div>`).join("");
+  }
+  async function processCandidate(idx) {
+    const file = batchState.files[idx];
+    const it = batchState.items[idx];
+    const ctx = batchState.ctx;
+    if (!file || !ctx) return false;
+    try {
+      it.state = "running"; it.stat = "简历解析中…"; renderBatchProgress();
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("candidate_name", "候选人");
+      let data = await (await fetch("/api/parse_resume", { method: "POST", body: fd })).json();
+      if (data.error) throw new Error(data.error);
+      const resume = data.markdown;
+      const rawName = (data.candidate_name && data.candidate_name !== "候选人") ? data.candidate_name : file.name;
+      const name = cleanName(rawName) || extractPersonName(file.name) || "候选人";
+      it.name = name;
+
+      it.stat = "作战图生成中…"; renderBatchProgress();
+      data = await (await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge }) })).json();
+      if (data.error) throw new Error(data.error);
+      const pre = data.markdown;
+
+      it.stat = "追问卡生成中…"; renderBatchProgress();
+      data = await (await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge, pre_report: pre }) })).json();
+      if (data.error) throw new Error(data.error);
+      const plan = data.markdown;
+
+      const ts = new Date().toISOString();
+      const record = {
+        id: recordIdFor(name, ctx.position), name, position: ctx.position,
+        date: ts.slice(0, 10), updatedAt: ts, status: "追问卡已生成（批量）",
+        meta: { rawJd: ctx.rawJd, formalJd: ctx.jd, weights: ctx.weights, departmentStyle: ctx.department_style, businessChallenge: ctx.business_challenge, interviewNotes: "", resumeFileName: file.name },
+        results: { resume, pre, plan }, scorecard: null, ceoNote: ""
+      };
+      const list = loadHistory(); list.unshift(record); saveHistory(list);
+      renderCandSwitch();
+      it.state = "done"; it.stat = "✅ 已完成"; renderBatchProgress();
+      return true;
+    } catch (err) {
+      it.state = "error"; it.stat = "❌ " + (err.message || "失败"); renderBatchProgress();
+      return false;
+    }
+  }
+  async function runBatchPool(indices, concurrency) {
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < indices.length) {
+        const idx = indices[cursor++];
+        await processCandidate(idx);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, indices.length) }, worker));
+  }
+  function batchOkCount() { return batchState.items.filter(it => it.state === "done").length; }
+  document.getElementById("batchProgress").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-retry]");
+    if (!b) return;
+    if (!batchState.ctx) { showError("请先点「批量生成」后再重试"); return; }
+    const idx = +b.dataset.retry;
+    b.disabled = true;
+    await processCandidate(idx);
+  });
+  document.getElementById("batchRunBtn").addEventListener("click", async () => {
+    clearError();
+    const files = Array.from(batchFilesInput.files || []);
+    if (files.length === 0) { showError("请先在「批量分析」处选择多份简历 PDF"); return; }
+    const rawJd = document.getElementById("jdText").value.trim();
+    let jd = document.getElementById("formalJdText").value.trim();
+    if (!rawJd && !jd) { showError("请先填写岗位描述（与单份分析共用）"); return; }
+    const btn = document.getElementById("batchRunBtn");
+    btn.disabled = true; btn.textContent = "⏳ 批量处理中...";
+    batchState.files = files;
+    batchState.items = files.map(f => ({ name: extractPersonName(f.name) || f.name.replace(/\.pdf$/i, ""), stat: "排队中", state: "queued" }));
+    renderBatchProgress();
+    try {
+      if (!jd) {
+        batchState.items.forEach(it => it.stat = "生成正式 JD…"); renderBatchProgress();
+        jd = await generateFormalJd();
+        if (!jd) throw new Error("正式 JD 生成失败，无法批量分析");
+      }
+      batchState.ctx = {
+        jd, rawJd,
+        weights: document.getElementById("weightsText").value.trim(),
+        department_style: document.getElementById("departmentStyle").value.trim(),
+        business_challenge: document.getElementById("businessChallenge").value.trim(),
+        position: getPositionName()
+      };
+      await runBatchPool(files.map((_, i) => i), BATCH_CONCURRENCY);
+      btn.textContent = `✅ 完成 ${batchOkCount()}/${files.length}`;
+      setTimeout(() => { btn.textContent = "📦 批量生成（解析→作战图→追问卡）"; btn.disabled = false; }, 2500);
+    } catch (e) {
+      showError(e.message);
+      btn.disabled = false; btn.textContent = "📦 批量生成（解析→作战图→追问卡）";
+    }
+  });
+  document.getElementById("batchTopBtn").addEventListener("click", () => {
+    const sec = document.getElementById("sectionPre");
+    if (sec) sec.classList.remove("collapsed");
+    const box = document.getElementById("batchUploadBox");
+    if (box) box.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  async function regenerateCurrent() {
+    const tab = currentTab;
+    if (tab === "resume") {
+      const file = fileInput.files[0];
+      if (!file) { showError("重新生成简历解析需要重新上传该候选人的简历 PDF。"); return; }
+    }
+    const jd = document.getElementById("formalJdText").value.trim() || document.getElementById("jdText").value.trim();
+    const weights = document.getElementById("weightsText").value.trim();
+    const department_style = document.getElementById("departmentStyle").value.trim();
+    const business_challenge = document.getElementById("businessChallenge").value.trim();
+    const candidateName = getCandidateName();
+    const btn = document.getElementById("regenBtn");
+    const old = btn.textContent;
+    btn.disabled = true; btn.textContent = "⏳ 重新生成中...";
+    clearError();
+    try {
+      showLoading(stepNames[tab], tab);
+      let data;
+      if (tab === "resume") {
+        const fd = new FormData();
+        fd.append("file", fileInput.files[0]);
+        fd.append("candidate_name", candidateName);
+        data = await (await fetch("/api/parse_resume", { method: "POST", body: fd })).json();
+        if (data.error) throw new Error(data.error);
+        results.resume = data.markdown;
+        const nm = data.candidate_name || candidateName;
+        document.getElementById("candidateName").value = nm;
+      } else if (tab === "pre") {
+        if (!results.resume) throw new Error("缺少简历解析，无法重新生成作战图");
+        data = await (await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) })).json();
+        if (data.error) throw new Error(data.error);
+        results.pre = data.markdown;
+      } else if (tab === "plan") {
+        if (!results.resume || !results.pre) throw new Error("缺少简历或作战图，无法重新生成追问卡");
+        data = await (await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) })).json();
+        if (data.error) throw new Error(data.error);
+        results.plan = data.markdown;
+      } else if (tab === "eval") {
+        const interview_notes = document.getElementById("interviewNotes").value.trim();
+        const selectedFiles = Array.from(interviewFiles.files || []);
+        if (!results.resume || !results.pre || !results.plan) throw new Error("请先完成前三步");
+        if (!interview_notes && selectedFiles.length === 0) throw new Error("缺少面试记录 / 附件，无法重新生成评判");
+        const fd = new FormData();
+        fd.append("candidate_name", candidateName);
+        fd.append("resume_md", results.resume);
+        fd.append("jd", jd);
+        fd.append("weights", weights);
+        fd.append("department_style", department_style);
+        fd.append("business_challenge", business_challenge);
+        fd.append("pre_report", results.pre);
+        fd.append("interview_plan", results.plan);
+        fd.append("interview_notes", interview_notes);
+        selectedFiles.forEach(f => fd.append("interview_files", f));
+        data = await (await fetch("/api/post_interview_eval", { method: "POST", body: fd })).json();
+        if (data.error) throw new Error(data.error);
+        results.eval = data.markdown;
+      }
+      stepState[tab] = "done";
+      markTabDone(tab); renderCurrent();
+      saveCurrentToHistory({ status: `${stepNames[tab]}已重新生成` });
+      btn.textContent = "✅ 已重新生成";
+      setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1800);
+    } catch (e) {
+      showError(e.message);
+      setStepState(tab, "error");
+      btn.disabled = false; btn.textContent = old;
+    }
+  }
   function copyCurrent() {
     navigator.clipboard.writeText(results[currentTab]);
     alert("已复制到剪贴板");
@@ -736,8 +1434,124 @@
     a.click();
     URL.revokeObjectURL(url);
   }
+  function sanitizeFileName(s) { return (s || "候选人").replace(/[\\/:*?"<>|]+/g, "_").trim() || "候选人"; }
+  function downloadTextFile(filename, text) {
+    const blob = new Blob([text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  async function exportAllMd() {
+    const name = sanitizeFileName(getCandidateName());
+    const order = ["resume", "pre", "plan", "eval"];
+    const sections = order.filter(t => (results[t] || "").trim());
+    if (!sections.length) { alert("当前没有可导出的内容，请先生成至少一项分析。"); return; }
+    // 同时导出一个合并 JSON，方便整条记录再导入
+    const rec = getCurrentRecord();
+    const bundle = {
+      name: getCandidateName(),
+      position: rec ? rec.position : getPositionName(),
+      date: rec ? rec.date : currentDate,
+      meta: rec ? rec.meta : collectHistoryMeta(),
+      results: { resume: results.resume || "", pre: results.pre || "", plan: results.plan || "", eval: results.eval || "" },
+      scorecard: parseScorecard(results.eval || "").data || null,
+      ceoNote: rec ? rec.ceoNote : ""
+    };
+    for (let i = 0; i < sections.length; i++) {
+      const t = sections[i];
+      downloadTextFile(`${name}_${titles[t]}`, results[t]);
+      await new Promise(r => setTimeout(r, 250));
+    }
+    await new Promise(r => setTimeout(r, 250));
+    downloadTextFile(`${name}_完整记录.json`, JSON.stringify(bundle, null, 2));
+    alert(`已导出 ${sections.length} 份 Markdown + 1 份完整记录 JSON。\n下次可用顶部「导入文件」一次选中它们恢复。`);
+  }
+  async function saveCurrentArchive() {
+    const btn = document.querySelector('[onclick="saveCurrentArchive()"]');
+    const hasContent = ["resume", "pre", "plan", "eval"].some(t => (results[t] || "").trim());
+    if (!hasContent) { alert("当前没有可保存的内容，请先生成至少一项分析。"); return; }
+    const orig = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "⏳ 保存中…"; }
+    try {
+      // 先把当前编辑落入历史（含 CEO 批注）
+      const live = document.getElementById("ceoNoteInput");
+      saveCurrentToHistory();
+      if (live && currentRecordId) {
+        const list = loadHistory();
+        const r = list.find(x => x.id === currentRecordId);
+        if (r) { r.ceoNote = live.value; saveHistory(list); }
+      }
+      // 立即同步到服务端存档（不走防抖，确保确定性）
+      const records = loadHistory();
+      const res = await fetch("/api/archive", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ records }) });
+      if (!res.ok) throw new Error("服务端保存失败（HTTP " + res.status + "）");
+      const data = await res.json();
+      if (btn) { btn.textContent = "✅ 已保存"; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800); }
+      else alert("已保存。");
+      console.log("存档已保存，共", data.count, "位候选人");
+    } catch (err) {
+      if (btn) { btn.textContent = orig; btn.disabled = false; }
+      alert("保存到服务端失败（本地仍已保存）：" + err.message);
+    }
+  }
+  const GENERIC_NAMES = ["", "候选人", "候选人简历整理", "简历整理", "未命名", "未知"];
+  const NAME_NOISE = /(简历|候选人|应聘|求职|岗位|职位|负责人|主管|经理|总监|专员|招聘|面试)/g;
+  function extractPersonName(raw) {
+    let s = (raw || "").trim();
+    if (!s) return "";
+    s = s.replace(/\.(pdf|docx?|txt|md|json)$/i, "");
+    // 反复去掉括号及其内容（处理 【...（...）...】 这种嵌套抬头/岗位/薪资）
+    let prev;
+    do { prev = s; s = s.replace(/[【（(\[][^【】（）()\[\]]*[】）)\]]/g, " "); } while (s !== prev);
+    // 分隔符切分，挑出纯中文 2-4 字、且不含噪声词的片段；姓名通常紧跟抬头，取第一个
+    const parts = s.split(/[\s_\-—·｜|,，、/\\]+/).filter(Boolean);
+    const cand = parts.filter(p => /^[\u4e00-\u9fa5]{2,4}$/.test(p) && !NAME_NOISE.test(p));
+    NAME_NOISE.lastIndex = 0;
+    if (cand.length) return cand[0];
+    // 退化：从整串里抓第一段 2-4 个连续中文
+    const m = s.replace(NAME_NOISE, " ").match(/[\u4e00-\u9fa5]{2,4}/g);
+    return m && m.length ? m[0] : "";
+  }
+  function cleanName(n) {
+    n = (n || "").trim().replace(/^[#\s>*-]+/, "").replace(/[*`]/g, "").trim();
+    if (n.length > 20) n = "";
+    if (GENERIC_NAMES.includes(n)) return "";
+    // 含抬头/岗位/薪资/年限等噪声时，提取其中的人名
+    if (n && (/[【（(\[]/.test(n) || /\d/.test(n) || NAME_NOISE.test(n))) {
+      NAME_NOISE.lastIndex = 0;
+      const p = extractPersonName(n);
+      if (p) return p;
+    }
+    NAME_NOISE.lastIndex = 0;
+    return n;
+  }
+  function nameFromResumeMd(md) {
+    md = md || "";
+    // 1) 基本信息里的「姓名：XXX」
+    const f = md.match(/姓名\**\s*[：:]\s*\**\s*([^\n｜|（(·]+)/);
+    if (f) { const n = cleanName(f[1].split(/[\s⚠️,，。;；]/)[0]); if (n) return n; }
+    // 2) 一级标题
+    const h = md.match(/^#\s+(.+)$/m);
+    if (h) { const n = cleanName(h[1]); if (n) return n; }
+    return "";
+  }
+  function resolveCandidateName(record) {
+    const r = record || { name: document.getElementById("candidateName").value.trim(), results };
+    const input = cleanName((r.name || "").trim());
+    if (input && !GENERIC_NAMES.includes(input)) return input;
+    const fromResume = nameFromResumeMd((r.results || {}).resume);
+    if (fromResume) return fromResume;
+    const { data } = parseScorecard((r.results || {}).eval || "");
+    if (data && data.name) { const n = cleanName(data.name); if (n) return n; }
+    return "候选人";
+  }
   function getCandidateName() {
-    return document.getElementById("candidateName").value.trim() || "候选人";
+    return resolveCandidateName({ name: document.getElementById("candidateName").value.trim(), results });
   }
   function escapeHtml(text) {
     const div = document.createElement("div");
@@ -747,8 +1561,10 @@
   function buildPrintReport(tabName) {
     const md = results[tabName];
     if (!md) return "";
-    const { data, body } = parseScorecard(md);
+    const { company, body: md2 } = parseCompany(md);
+    const { data, body } = parseScorecard(md2);
     const vizHtml = data ? buildScorecardHtml(data) : "";
+    const companyHtml = (company && Array.isArray(company.companies)) ? companyPrintHtml(company) : "";
     let noteHtml = "";
     if (tabName === "eval") {
       const live = document.getElementById("ceoNoteInput");
@@ -764,6 +1580,7 @@
         </div>
         ${vizHtml}
         <div class="markdown">${marked.parse(body)}</div>
+        ${companyHtml}
         ${noteHtml}
       </section>
     `;
@@ -801,6 +1618,7 @@
     const jd = document.getElementById("formalJdText").value.trim() || document.getElementById("jdText").value.trim();
     const weights = document.getElementById("weightsText").value.trim();
     const department_style = document.getElementById("departmentStyle").value.trim();
+    const business_challenge = document.getElementById("businessChallenge").value.trim();
     const interview_notes = document.getElementById("interviewNotes").value.trim();
     const selectedFiles = Array.from(interviewFiles.files || []);
     if (!results.resume || !results.pre || !results.plan) { showError("请先完成前三步分析"); return; }
@@ -819,6 +1637,7 @@
       formData.append("jd", jd);
       formData.append("weights", weights);
       formData.append("department_style", department_style);
+      formData.append("business_challenge", business_challenge);
       formData.append("pre_report", results.pre);
       formData.append("interview_plan", results.plan);
       formData.append("interview_notes", interview_notes);
@@ -829,7 +1648,7 @@
       results.eval = data.markdown;
       stepState.eval = "done";
       markTabDone("eval"); renderCurrent();
-      saveCurrentToHistory();
+      saveCurrentToHistory({ status: "评判已完成" });
       btn.textContent = "✅ 评判完成！";
       setTimeout(() => { btn.textContent = "🧮 重新评判"; btn.disabled = false; }, 2000);
     } catch (e) {
@@ -844,7 +1663,139 @@
   const HISTORY_KEY = "interview_copilot_history_v1";
   let currentRecordId = "";
   function loadHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch (e) { return []; } }
-  function saveHistory(list) { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }
+  let archiveSyncTimer = null;
+  function syncArchiveToServer() {
+    clearTimeout(archiveSyncTimer);
+    archiveSyncTimer = setTimeout(() => {
+      const records = loadHistory();
+      fetch("/api/archive", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ records }) })
+        .then(r => r.ok || Promise.reject(new Error("archive save failed")))
+        .catch(err => console.warn("存档同步失败（本地仍已保存）：", err));
+    }, 400);
+  }
+  function saveHistory(list) { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); syncArchiveToServer(); }
+  function mergeRecords(localList, serverList) {
+    const byId = {};
+    [...serverList, ...localList].forEach(r => {
+      if (!r || !r.id) return;
+      const prev = byId[r.id];
+      if (!prev) { byId[r.id] = r; return; }
+      const a = Date.parse(prev.updatedAt || prev.date || 0) || 0;
+      const b = Date.parse(r.updatedAt || r.date || 0) || 0;
+      byId[r.id] = b >= a ? r : prev;
+    });
+    return Object.values(byId).sort((a, b) => (Date.parse(b.updatedAt || b.date || 0) || 0) - (Date.parse(a.updatedAt || a.date || 0) || 0));
+  }
+  async function loadArchiveFromServer() {
+    try {
+      const res = await fetch("/api/archive");
+      if (!res.ok) return;
+      const data = await res.json();
+      const serverList = Array.isArray(data.records) ? data.records : [];
+      const merged = mergeRecords(loadHistory(), serverList);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(merged));
+      // 若本地有服务端没有的记录，回写一次确保落盘
+      if (merged.length !== serverList.length) syncArchiveToServer();
+      renderCandSwitch();
+    } catch (err) {
+      console.warn("读取服务端存档失败，使用本地历史：", err);
+    }
+  }
+  function readTextFile(file) { return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result || "")); r.onerror = reject; r.readAsText(file); }); }
+  function guessStepFromFileName(name, content) {
+    const n = name.toLowerCase();
+    if (/01|简历|resume/.test(n) || /^#\s*[^\n]+\n\s*##\s*👤\s*候选人速览/m.test(content)) return "resume";
+    if (/02|作战图|pre/.test(n) || /面试前作战图/.test(content)) return "pre";
+    if (/03|追问|interview[_-]?plan|plan/.test(n) || /面试追问卡/.test(content)) return "plan";
+    if (/04|评判|评分|eval|post/.test(n) || /面试后评判|录用建议判断|综合评分/.test(content)) return "eval";
+    return "resume";
+  }
+  function guessImportGroup(file, content) {
+    // 1) 导出文件名前缀：「名字_01_简历.md」
+    const prefix = file.name.match(/^(.+?)_0[1-4]_/);
+    if (prefix && cleanName(prefix[1])) return cleanName(prefix[1]);
+    // 2) 文件夹路径父目录
+    const path = file.webkitRelativePath || file.name;
+    const parts = path.split("/").filter(Boolean);
+    if (parts.length >= 2) return parts[parts.length - 2].replace(/^\d{4}-\d{2}-\d{2}_/, "");
+    // 3) 从正文标题提取（兼容「作战图：XXX」等标题）
+    const h1 = content.match(/^#\s+(.+)$/m);
+    let title = (h1 && h1[1] || "").replace(/[*`]/g, "").trim();
+    const colon = title.split(/[：:]/);
+    if (colon.length > 1) title = colon[colon.length - 1].trim();
+    return cleanName(title) || file.name.replace(/\.(md|markdown|json)$/i, "").replace(/^\d+[_-]?/, "");
+  }
+  function normalizeImportedRecord(rec) {
+    const ts = new Date().toISOString();
+    const resultsObj = rec.results || {};
+    const name = resolveCandidateName({ name: rec.name, results: resultsObj });
+    const position = rec.position || "导入记录";
+    return {
+      id: rec.id || recordIdFor(name, position),
+      name, position,
+      date: rec.date || ts.slice(0, 10),
+      updatedAt: rec.updatedAt || ts,
+      status: rec.status || `已导入 ${["resume", "pre", "plan", "eval"].filter(k => resultsObj[k]).length}/4`,
+      meta: rec.meta || {},
+      results: { resume: resultsObj.resume || "", pre: resultsObj.pre || "", plan: resultsObj.plan || "", eval: resultsObj.eval || "" },
+      scorecard: rec.scorecard || parseScorecard(resultsObj.eval || "").data || null,
+      ceoNote: rec.ceoNote || ""
+    };
+  }
+  async function importHistoryFiles(files) {
+    const groups = {};
+    const directRecords = [];
+    for (const file of files) {
+      const text = await readTextFile(file);
+      if (/\.json$/i.test(file.name)) {
+        const parsed = JSON.parse(text);
+        const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.records) ? parsed.records : [parsed]);
+        arr.forEach(r => directRecords.push(normalizeImportedRecord(r)));
+        continue;
+      }
+      if (!/\.(md|markdown)$/i.test(file.name)) continue;
+      const group = guessImportGroup(file, text);
+      const step = guessStepFromFileName(file.name, text);
+      groups[group] = groups[group] || { name: group, results: {} };
+      groups[group].results[step] = text;
+    }
+    // 同名 JSON 完整记录优先，跳过重复的 md 分组，避免生成两条记录
+    const jsonNames = new Set(directRecords.map(r => r.name));
+    Object.keys(groups).forEach(g => {
+      const nm = resolveCandidateName({ name: g, results: groups[g].results });
+      if (jsonNames.has(nm)) delete groups[g];
+    });
+    const mdRecords = Object.values(groups).map(g => normalizeImportedRecord({ name: g.name, position: "导入记录", results: g.results }));
+    const incoming = [...directRecords, ...mdRecords].filter(r => Object.values(r.results || {}).some(Boolean));
+    if (!incoming.length) { alert("没有识别到可导入的历史记录。请选择 .md 或 .json 文件。"); return; }
+    const list = loadHistory();
+    incoming.forEach(r => list.unshift(r));
+    saveHistory(list);
+    renderCandSwitch();
+    renderHistory();
+    alert(`已导入 ${incoming.length} 位候选人记录。`);
+  }
+  function exportHistoryJson() {
+    const list = loadHistory();
+    if (!list.length) { alert("暂无历史记录可导出。"); return; }
+    const blob = new Blob([JSON.stringify(list, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `interview-copilot-history-${currentDate || new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFiles").click());
+  document.getElementById("importFolderBtn").addEventListener("click", () => document.getElementById("importFolder").click());
+  document.getElementById("exportHistoryBtn").addEventListener("click", exportHistoryJson);
+  ["importFiles", "importFolder"].forEach(id => {
+    document.getElementById(id).addEventListener("change", async (e) => {
+      try { await importHistoryFiles(Array.from(e.target.files || [])); }
+      catch (err) { showError("导入失败：" + err.message); }
+      e.target.value = "";
+    });
+  });
   function getPositionName() {
     const sel = POSITION_PRESETS[positionSelect.value];
     if (sel) return sel.name;
@@ -852,16 +1803,36 @@
     if (data && data.position) return data.position;
     return "未分类岗位";
   }
-  function recordIdFor(name, position) { return `${name}|${position}`; }
-  function saveCurrentToHistory() {
+  function recordIdFor(name, position) { return `${Date.now()}|${name}|${position}|${Math.random().toString(16).slice(2)}`; }
+  function completedStepsOf(record) {
+    const r = record.results || {};
+    return ["resume", "pre", "plan", "eval"].filter(k => r[k]).length;
+  }
+  function collectHistoryMeta(extra = {}) {
+    return {
+      rawJd: document.getElementById("jdText").value.trim(),
+      formalJd: document.getElementById("formalJdText").value.trim(),
+      weights: document.getElementById("weightsText").value.trim(),
+      departmentStyle: document.getElementById("departmentStyle").value.trim(),
+      businessChallenge: document.getElementById("businessChallenge").value.trim(),
+      interviewNotes: document.getElementById("interviewNotes").value.trim(),
+      ...extra
+    };
+  }
+  function saveCurrentToHistory(extra = {}) {
     const name = getCandidateName();
     const position = getPositionName();
     const { data } = parseScorecard(results.eval || "");
-    const id = recordIdFor(name, position);
     const list = loadHistory();
-    const existing = list.find(r => r.id === id);
+    const existing = currentRecordId ? list.find(r => r.id === currentRecordId) : null;
+    const id = existing ? existing.id : recordIdFor(name, position);
+    const ts = new Date().toISOString();
     const record = {
-      id, name, position, date: currentDate || new Date().toISOString().slice(0, 10),
+      id, name, position,
+      date: existing ? existing.date : (currentDate || ts.slice(0, 10)),
+      updatedAt: ts,
+      status: extra.status || (results.eval ? "评判已完成" : results.plan ? "追问卡已生成" : results.pre ? "作战图已生成" : results.resume ? "简历已解析" : "已创建"),
+      meta: { ...(existing ? existing.meta || {} : {}), ...collectHistoryMeta(extra) },
       results: { ...results }, scorecard: data || null,
       ceoNote: existing ? existing.ceoNote : ""
     };
@@ -869,6 +1840,8 @@
     if (idx >= 0) list[idx] = record; else list.unshift(record);
     saveHistory(list);
     currentRecordId = id;
+    renderCandSwitch();
+    maybeAutoExpandPost();
   }
   function getCurrentRecord() { return loadHistory().find(r => r.id === currentRecordId) || null; }
   function appendCeoNote(content) {
@@ -902,27 +1875,145 @@
   });
   // 历史记录
   document.getElementById("historyBtn").addEventListener("click", () => { renderHistory(); openModal("historyModal"); });
+  function previewHtmlOf(r) {
+    const meta = r.meta || {};
+    const sc = r.scorecard;
+    const has = s => (s || "").trim();
+    const clip = (s, n) => { s = (s || "").trim(); return s.length > n ? escapeHtml(s.slice(0, n)) + "…" : escapeHtml(s); };
+    const updated = (r.updatedAt || "").replace("T", " ").slice(0, 16) || r.date || "—";
+    // 只展示有内容的字段，避免旧记录满屏“—”
+    const rows = [
+      ["岗位", has(r.position) ? escapeHtml(r.position) : ""],
+      ["简历文件", has(meta.resumeFileName) ? escapeHtml(meta.resumeFileName) : ""],
+      ["岗位描述", clip(meta.rawJd || meta.formalJd, 120)],
+      ["能力权重", clip(meta.weights, 80)],
+      ["业务挑战", clip(meta.businessChallenge, 100)],
+      ["部门风格", clip(meta.departmentStyle, 60)],
+      ["进度", `${escapeHtml(r.status || "")}（${completedStepsOf(r)}/4）`],
+      ["最近更新", escapeHtml(updated)],
+    ];
+    if (sc) {
+      rows.push(["综合得分", `${escapeHtml(String(sc.overall))} / 100`]);
+      if (sc.core_reason) rows.push(["核心原因", clip(sc.core_reason, 120)]);
+      if (sc.biggest_risk) rows.push(["最大风险", clip(sc.biggest_risk, 120)]);
+    }
+    if (r.ceoNote) rows.push(["CEO 批注", clip(r.ceoNote, 120)]);
+    return rows.filter(([, v]) => v).map(([k, v]) => `<div class="pv-row"><b>${k}：</b>${v}</div>`).join("");
+  }
   function renderHistory() {
     const list = loadHistory();
     const body = document.getElementById("historyBody");
-    if (!list.length) { body.innerHTML = '<div class="hist-empty">暂无历史记录。完成一次面试后评判后会自动保存到这里。</div>'; return; }
-    body.innerHTML = list.map(r => {
+    if (!list.length) { body.innerHTML = '<div class="hist-empty">暂无候选人档案。上传简历并开始分析后，会自动保存简历解析、作战图、追问卡和面试后评判。也可以点击顶部「导入文件 / 导入文件夹」批量导入 .md 或 .json。</div>'; return; }
+    const groups = {};
+    list.forEach(r => { const pos = r.position || "未分类岗位"; (groups[pos] = groups[pos] || []).push(r); });
+    const itemHtml = r => {
       const lvl = r.scorecard ? r.scorecard.decision_level : "";
       const overall = r.scorecard ? r.scorecard.overall : "—";
       const pill = lvl ? `<span class="level-pill ${levelPillClass(lvl)}">${escapeHtml(lvl)}</span>` : "";
+      const done = new Set(Object.entries(r.results || {}).filter(([, v]) => v).map(([k]) => k));
+      const steps = [["resume", "简历"], ["pre", "作战图"], ["plan", "追问卡"], ["eval", "评判"]].map(([k, label]) => `<span class="hist-step ${done.has(k) ? "done" : ""}">${label}</span>`).join("");
+      const fileName = r.meta && r.meta.resumeFileName ? ` · ${escapeHtml(r.meta.resumeFileName)}` : "";
+      const status = r.status || `已完成 ${completedStepsOf(r)}/4`;
+      const displayName = resolveCandidateName(r);
       return `<div class="hist-item">
         <div class="hi-main">
-          <div class="hi-name">${escapeHtml(r.name)} ${pill}</div>
-          <div class="hi-sub">${escapeHtml(r.position)} · 综合 ${overall} · ${escapeHtml(r.date)}</div>
+          <div class="hi-name">${escapeHtml(displayName)} ${pill}</div>
+          <div class="hi-sub">综合 ${overall} · ${escapeHtml(status)} · ${escapeHtml(r.date)}${fileName}</div>
+          <div class="hist-steps">${steps}</div>
+          <div class="pos-edit" id="pe-${escapeHtml(r.id)}" style="display:none;margin-top:6px;"></div>
+          <div class="hi-preview" id="pv-${escapeHtml(r.id)}">${previewHtmlOf(r)}</div>
         </div>
         <div class="hi-actions">
+          <button class="preview" data-preview="${escapeHtml(r.id)}">预览</button>
+          <button data-editpos="${escapeHtml(r.id)}">归类</button>
           <button data-load="${escapeHtml(r.id)}">载入</button>
           <button class="del" data-del="${escapeHtml(r.id)}">删除</button>
         </div>
       </div>`;
+    };
+    body.innerHTML = `<div class="hist-empty" style="margin-bottom:12px;">当前浏览器本地历史共 <b>${list.length}</b> 位候选人。岗位标准库里的「产品部门/销售部门」不等于历史候选人；如需多人，请用顶部「导入文件夹」导入。</div>` + Object.entries(groups).map(([pos, recs]) => {
+      const scored = recs.filter(r => r.scorecard).length;
+      const preReady = recs.filter(PRE_DONE).length;
+      const preBtn = `<button class="hist-group-cmp" data-precmp-pos="${escapeHtml(pos)}" ${preReady >= 2 ? "" : "disabled"}>🔎 预筛对比${preReady >= 2 ? `（${preReady}人）` : "（需≥2份前三轮）"}</button>`;
+      const cmpBtn = `<button class="hist-group-cmp" data-cmp-pos="${escapeHtml(pos)}" ${scored >= 2 ? "" : "disabled"}>📊 评分对比${scored >= 2 ? `（${scored}人）` : "（需≥2份评判）"}</button>`;
+      const mergeBtn = `<button data-mergepos="${escapeHtml(pos)}" style="margin-left:8px;">↦ 合并/重命名</button>`;
+      return `<div class="hist-group">
+        <div class="hist-group-head">
+          <div class="hist-group-title">💼 ${escapeHtml(pos)}<span class="hg-count">${recs.length} 位候选人</span></div>
+          <div>${mergeBtn}${preBtn}${cmpBtn}</div>
+        </div>
+        ${recs.map(itemHtml).join("")}
+      </div>`;
     }).join("");
+    body.querySelectorAll("[data-preview]").forEach(b => b.addEventListener("click", () => {
+      const pv = document.getElementById("pv-" + b.dataset.preview);
+      const open = pv.classList.toggle("open");
+      b.textContent = open ? "收起" : "预览";
+    }));
     body.querySelectorAll("[data-load]").forEach(b => b.addEventListener("click", () => loadRecord(b.dataset.load)));
     body.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { deleteRecord(b.dataset.del); renderHistory(); }));
+    body.querySelectorAll("[data-cmp-pos]").forEach(b => b.addEventListener("click", () => {
+      closeModal(document.getElementById("historyModal"));
+      renderCompareSelect(b.dataset.cmpPos, "post"); openModal("compareModal");
+    }));
+    body.querySelectorAll("[data-precmp-pos]").forEach(b => b.addEventListener("click", () => {
+      closeModal(document.getElementById("historyModal"));
+      renderCompareSelect(b.dataset.precmpPos, "pre"); openModal("compareModal");
+    }));
+    body.querySelectorAll("[data-editpos]").forEach(b => b.addEventListener("click", () => openPosEditor(b.dataset.editpos)));
+    body.querySelectorAll("[data-mergepos]").forEach(b => b.addEventListener("click", () => mergeGroup(b.dataset.mergepos)));
+  }
+  function allKnownPositions() {
+    const fromHistory = loadHistory().map(r => r.position || "未分类岗位");
+    const fromPresets = Object.values(POSITION_PRESETS).map(p => p.name);
+    return [...new Set([...fromHistory, ...fromPresets])].filter(Boolean);
+  }
+  function setRecordPosition(id, pos) {
+    pos = (pos || "").trim();
+    if (!pos) return;
+    const list = loadHistory();
+    const r = list.find(x => x.id === id);
+    if (!r) return;
+    r.position = pos;
+    saveHistory(list);
+    renderCandSwitch();
+    renderHistory();
+  }
+  function openPosEditor(id) {
+    const box = document.getElementById("pe-" + id);
+    if (!box) return;
+    if (box.style.display !== "none") { box.style.display = "none"; box.innerHTML = ""; return; }
+    const cur = (loadHistory().find(x => x.id === id) || {}).position || "";
+    const opts = allKnownPositions().map(p => `<option value="${escapeHtml(p)}" ${p === cur ? "selected" : ""}>${escapeHtml(p)}</option>`).join("");
+    box.style.display = "block";
+    box.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
+      <span style="font-size:12px;color:#64748b;">归类到：</span>
+      <select class="pe-sel" style="padding:4px 6px;">${opts}</select>
+      <input class="pe-inp" placeholder="或输入新岗位名" style="padding:4px 6px;border:1px solid #cbd5e1;border-radius:6px;">
+      <button class="pe-save" style="background:#4f46e5;color:#fff;">保存</button>
+      <button class="pe-cancel">取消</button>
+    </div>`;
+    box.querySelector(".pe-save").addEventListener("click", () => {
+      const inp = box.querySelector(".pe-inp").value.trim();
+      const sel = box.querySelector(".pe-sel").value;
+      setRecordPosition(id, inp || sel);
+    });
+    box.querySelector(".pe-cancel").addEventListener("click", () => { box.style.display = "none"; box.innerHTML = ""; });
+  }
+  function mergeGroup(oldPos) {
+    const options = allKnownPositions().filter(p => p !== oldPos);
+    const hint = options.length ? `\n\n已有岗位可直接复制粘贴：\n- ${options.join("\n- ")}` : "";
+    const target = prompt(`将「${oldPos}」组的所有候选人合并/重命名为：${hint}`, oldPos);
+    if (target == null) return;
+    const t = target.trim();
+    if (!t || t === oldPos) return;
+    const list = loadHistory();
+    let n = 0;
+    list.forEach(r => { if ((r.position || "未分类岗位") === oldPos) { r.position = t; n++; } });
+    saveHistory(list);
+    renderCandSwitch();
+    renderHistory();
+    alert(`已将 ${n} 位候选人从「${oldPos}」归并到「${t}」。`);
   }
   function loadRecord(id) {
     const r = loadHistory().find(x => x.id === id);
@@ -932,33 +2023,131 @@
     results.plan = r.results.plan || "";
     results.eval = r.results.eval || "";
     currentRecordId = r.id;
-    document.getElementById("candidateName").value = r.name;
-    ["resume", "pre", "plan", "eval"].forEach(t => { if (results[t]) markTabDone(t); });
-    switchTab("eval"); renderCurrent();
+    document.getElementById("candidateName").value = resolveCandidateName(r);
+    const meta = r.meta || {};
+    document.getElementById("jdText").value = meta.rawJd || "";
+    document.getElementById("formalJdText").value = meta.formalJd || "";
+    document.getElementById("weightsText").value = meta.weights || "";
+    document.getElementById("departmentStyle").value = meta.departmentStyle || "";
+    document.getElementById("businessChallenge").value = meta.businessChallenge || "";
+    document.getElementById("interviewNotes").value = meta.interviewNotes || "";
+    ["resume", "pre", "plan", "eval"].forEach(t => { stepState[t] = results[t] ? "done" : "idle"; if (results[t]) markTabDone(t); else document.querySelector(`.tab[data-tab="${t}"]`).classList.remove("done"); });
+    switchTab(results.eval ? "eval" : results.plan ? "plan" : results.pre ? "pre" : "resume"); renderCurrent();
+    // 展开/折叠分区：有评判记录时展开面试后区
+    autoExpandedPost = !!results.eval;
+    document.getElementById("sectionPost").classList.toggle("collapsed", !(results.eval || (results.resume && results.pre && results.plan)));
+    renderCandSwitch();
     closeModal(document.getElementById("historyModal"));
   }
   function deleteRecord(id) {
     saveHistory(loadHistory().filter(r => r.id !== id));
     if (currentRecordId === id) currentRecordId = "";
+    renderCandSwitch();
   }
   // 候选人对比
   document.getElementById("compareBtn").addEventListener("click", () => { renderCompareSelect(); openModal("compareModal"); });
-  function renderCompareSelect() {
-    const list = loadHistory().filter(r => r.scorecard);
+  let compareMode = "post"; // post = 面试后评分对比；pre = 面试前预筛对比
+  const PRE_DONE = r => { const x = r.results || {}; return x.resume && x.pre && x.plan; };
+  function renderCompareSelect(presetPos, mode) {
+    if (mode) compareMode = mode;
     const body = document.getElementById("compareBody");
-    if (list.length < 2) { body.innerHTML = '<div class="hist-empty">至少需要 2 位有评分结果的候选人才能对比。</div>'; return; }
-    const groups = {};
-    list.forEach(r => { (groups[r.position] = groups[r.position] || []).push(r); });
-    const groupsHtml = Object.entries(groups).map(([pos, recs]) => `
-      <div class="cmp-pos-group">
-        <h4>${escapeHtml(pos)}（${recs.length} 人）</h4>
-        ${recs.map(r => `<label><input type="checkbox" class="cmp-chk" value="${escapeHtml(r.id)}"> ${escapeHtml(r.name)} · 综合 ${r.scorecard.overall}</label>`).join("")}
-      </div>`).join("");
-    body.innerHTML = `<div class="step-hint" style="text-align:left;margin-bottom:10px;">勾选同岗位的 2-4 位候选人，然后点击生成对比。</div>
-      <div class="cmp-select-bar">${groupsHtml}</div>
-      <button class="btn" id="doCompareBtn" style="max-width:220px;">📊 生成对比</button>
-      <div id="cmpResult" style="margin-top:18px;"></div>`;
-    document.getElementById("doCompareBtn").addEventListener("click", runCompare);
+    const tabs = `<div class="cmp-mode-tabs">
+      <button class="cmp-mode ${compareMode === "post" ? "active" : ""}" data-mode="post">🏁 面试后评分对比</button>
+      <button class="cmp-mode ${compareMode === "pre" ? "active" : ""}" data-mode="pre">🔎 面试前预筛对比（前三轮）</button>
+    </div>`;
+    const isPre = compareMode === "pre";
+    const list = loadHistory().filter(isPre ? PRE_DONE : (r => r.scorecard));
+    let inner;
+    if (list.length < 2) {
+      inner = `<div class="hist-empty">${isPre ? "至少需要 2 位已完成前三轮（简历+作战图+追问卡）的候选人。" : "至少需要 2 位有评分结果（已完成第四轮评判）的候选人。"}</div>`;
+    } else {
+      const groups = {};
+      list.forEach(r => { (groups[r.position] = groups[r.position] || []).push(r); });
+      const groupsHtml = Object.entries(groups).map(([pos, recs]) => {
+        const checkAll = presetPos && pos === presetPos;
+        return `
+        <div class="cmp-pos-group">
+          <h4>${escapeHtml(pos)}（${recs.length} 人）</h4>
+          ${recs.map(r => { const tag = isPre ? "前三轮已完成" : `综合 ${r.scorecard.overall}`; return `<label><input type="checkbox" class="cmp-chk" value="${escapeHtml(r.id)}" data-pos="${escapeHtml(pos)}" ${checkAll ? "checked" : ""}> ${escapeHtml(resolveCandidateName(r))} · ${tag}</label>`; }).join("")}
+        </div>`;
+      }).join("");
+      const hint = isPre
+        ? "勾选同岗位的 2-4 位候选人，AI 会读取他们的简历+作战图+追问卡，给出『建议优先面试排序』，帮你决定先面谁。"
+        : "勾选同岗位的 2-4 位候选人，然后点击生成对比。";
+      const btn = isPre
+        ? `<button class="btn" id="doPreCompareBtn" style="max-width:240px;">🔎 生成 AI 预筛排序</button>`
+        : `<button class="btn" id="doCompareBtn" style="max-width:220px;">📊 生成对比</button>`;
+      inner = `<div class="step-hint" style="text-align:left;margin-bottom:10px;">${hint}</div>
+        <div class="cmp-select-bar">${groupsHtml}</div>
+        ${btn}
+        <div id="cmpResult" style="margin-top:18px;"></div>`;
+    }
+    body.innerHTML = tabs + inner;
+    body.querySelectorAll(".cmp-mode").forEach(b => b.addEventListener("click", () => renderCompareSelect(presetPos, b.dataset.mode)));
+    const dc = document.getElementById("doCompareBtn"); if (dc) dc.addEventListener("click", runCompare);
+    const dp = document.getElementById("doPreCompareBtn"); if (dp) dp.addEventListener("click", runPreScreenCompare);
+    if (presetPos && list.length && !isPre && (loadHistory().filter(r => r.scorecard && r.position === presetPos).length >= 2)) runCompare();
+  }
+  const PRESCREEN_RE = /```prescreen\s*([\s\S]*?)```/;
+  function recommendPillClass(rec) {
+    const t = (rec || "").trim();
+    if (t.includes("强烈")) return "pill-strong";
+    if (t.includes("不建议")) return "pill-reject";
+    if (t.includes("待定")) return "pill-caution";
+    return "pill-ok";
+  }
+  async function runPreScreenCompare() {
+    const ids = Array.from(document.querySelectorAll(".cmp-chk:checked")).map(c => c.value);
+    const result = document.getElementById("cmpResult");
+    if (ids.length < 2) { result.innerHTML = '<div class="error">请至少勾选 2 位候选人。</div>'; return; }
+    const recs = loadHistory().filter(r => ids.includes(r.id));
+    if (new Set(recs.map(r => r.position)).size > 1) { result.innerHTML = '<div class="error">请只选择同一岗位的候选人进行对比。</div>'; return; }
+    const btn = document.getElementById("doPreCompareBtn");
+    const orig = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "⏳ AI 预筛中…（约 30-60 秒）"; }
+    result.innerHTML = '<div class="step-hint" style="text-align:left;">AI 正在阅读各候选人的简历 / 作战图 / 追问卡并排序，请稍候…</div>';
+    try {
+      const m0 = recs[0].meta || {};
+      const payload = {
+        position: recs[0].position || "未分类岗位",
+        jd: m0.formalJd || m0.rawJd || "",
+        weights: m0.weights || "",
+        candidates: recs.map(r => ({ name: resolveCandidateName(r), resume: (r.results || {}).resume || "", pre: (r.results || {}).pre || "", plan: (r.results || {}).plan || "" }))
+      };
+      const res = await fetch("/api/pre_screen_compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+      renderPreScreenResult(result, data.markdown || "");
+    } catch (e) {
+      result.innerHTML = `<div class="error">AI 预筛失败：${escapeHtml(e.message)}</div>`;
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
+    }
+  }
+  function renderPreScreenResult(container, md) {
+    const match = md.match(PRESCREEN_RE);
+    let data = null;
+    if (match) { try { data = JSON.parse(match[1].trim()); } catch (e) { data = null; } }
+    const body = md.replace(PRESCREEN_RE, "").trim();
+    let tableHtml = "";
+    if (data && Array.isArray(data.ranking) && data.ranking.length) {
+      const rk = data.ranking.slice().sort((a, b) => (a.priority || 99) - (b.priority || 99));
+      const head = `<tr><th>维度 / 候选人</th>${rk.map(c => `<th>#${c.priority || "?"} ${escapeHtml(c.name || "")}</th>`).join("")}</tr>`;
+      const rows = [];
+      const fits = rk.map(c => Number(c.fit_score) || 0);
+      const maxFit = Math.max(...fits);
+      rows.push(`<tr><td class="metric">是否值得 CEO 亲自面</td>${rk.map(c => `<td><span class="level-pill ${recommendPillClass(c.recommend)}">${escapeHtml(c.recommend || "—")}</span></td>`).join("")}</tr>`);
+      rows.push(`<tr><td class="metric">匹配度预判</td>${rk.map((c, i) => `<td class="${fits[i] === maxFit && maxFit > 0 ? "cmp-best" : ""}"><strong>${c.fit_score != null ? c.fit_score : "—"}</strong> / 100</td>`).join("")}</tr>`);
+      rows.push(`<tr><td class="metric">一句话画像</td>${rk.map(c => `<td>${escapeHtml(c.one_liner || "")}</td>`).join("")}</tr>`);
+      const listCell = arr => `<td>${Array.isArray(arr) && arr.length ? "<ul style='margin:0;padding-left:16px;'>" + arr.map(x => `<li>${escapeHtml(x)}</li>`).join("") + "</ul>" : "—"}</td>`;
+      rows.push(`<tr><td class="metric">亮点</td>${rk.map(c => listCell(c.highlights)).join("")}</tr>`);
+      rows.push(`<tr><td class="metric">风险 / 疑点</td>${rk.map(c => listCell(c.risks)).join("")}</tr>`);
+      rows.push(`<tr><td class="metric">若要面，必问</td>${rk.map(c => listCell(c.must_verify)).join("")}</tr>`);
+      const summary = data.summary ? `<div class="cmp-summary">🧭 ${escapeHtml(data.summary)}</div>` : "";
+      tableHtml = `${summary}<table class="cmp-table">${head}${rows.join("")}</table><div class="step-hint" style="text-align:left;margin:8px 0 18px;">表格按建议优先级排序（#1 = 最该优先面）。绿色为匹配度最高者。以下为完整分析。</div>`;
+    }
+    container.innerHTML = tableHtml + '<div class="output-content" id="preCmpReport" style="box-shadow:none;padding:0;"></div>';
+    if (body) renderReport(container.querySelector("#preCmpReport"), body);
   }
   function runCompare() {
     const ids = Array.from(document.querySelectorAll(".cmp-chk:checked")).map(c => c.value);
@@ -971,7 +2160,7 @@
     const dimNames = [];
     recs.forEach(r => (r.scorecard.dimensions || []).forEach(d => { if (!dimNames.includes(d.name)) dimNames.push(d.name); }));
     const scoreOf = (r, name) => { const d = (r.scorecard.dimensions || []).find(x => x.name === name); return d ? Number(d.score) : null; };
-    const head = `<tr><th>维度 / 候选人</th>${recs.map(r => `<th>${escapeHtml(r.name)}</th>`).join("")}</tr>`;
+    const head = `<tr><th>维度 / 候选人</th>${recs.map(r => `<th>${escapeHtml(resolveCandidateName(r))}</th>`).join("")}</tr>`;
     const rows = [];
     const overalls = recs.map(r => Number(r.scorecard.overall) || 0);
     const maxOverall = Math.max(...overalls);
@@ -988,6 +2177,58 @@
     rows.push(`<tr><td class="metric">建议动作</td>${recs.map(r => `<td>${escapeHtml(r.scorecard.recommended_action || "")}</td>`).join("")}</tr>`);
     result.innerHTML = `<table class="cmp-table">${head}${rows.join("")}</table><div class="step-hint" style="text-align:left;margin-top:8px;">绿色高亮为该维度得分最高者。</div>`;
   }
+
+  // ===== UI v2：分区折叠 + 候选人切换条 =====
+  document.querySelectorAll(".v2-section-head[data-toggle]").forEach(h => {
+    h.addEventListener("click", () => document.getElementById(h.dataset.toggle).classList.toggle("collapsed"));
+  });
+  let autoExpandedPost = false;
+  function maybeAutoExpandPost() {
+    const preDone = ["resume", "pre", "plan"].filter(k => results[k]).length;
+    if (preDone === 3 && !results.eval && !autoExpandedPost) {
+      autoExpandedPost = true;
+      document.getElementById("sectionPost").classList.remove("collapsed");
+    }
+  }
+  function clearForm() {
+    ["candidateName", "jdText", "formalJdText", "weightsText", "departmentStyle", "businessChallenge", "interviewNotes", "vetoText"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+    Object.keys(results).forEach(k => results[k] = "");
+    ["resume", "pre", "plan", "eval"].forEach(t => { stepState[t] = "idle"; document.querySelector(`.tab[data-tab="${t}"]`).classList.remove("done"); });
+    currentRecordId = "";
+    autoExpandedPost = false;
+    document.getElementById("sectionPre").classList.remove("collapsed");
+    document.getElementById("sectionPost").classList.add("collapsed");
+    switchTab("resume");
+    document.getElementById("outputContent").classList.add("empty");
+    renderCurrent();
+    renderCandSwitch();
+  }
+  function renderCandSwitch() {
+    const el = document.getElementById("candSwitch");
+    if (!el) return;
+    const list = loadHistory();
+    const cur = getCurrentRecord();
+    const curName = cur ? resolveCandidateName(cur) : getCandidateName();
+    let curPos = "当前分析";
+    try { curPos = cur ? (cur.position || "未分类岗位") : getPositionName(); } catch (e) {}
+    el.style.display = "flex";
+    const chips = list.slice(0, 8).map(r => {
+      const nm = resolveCandidateName(r);
+      const active = r.id === currentRecordId ? " active" : "";
+      return `<span class="cs-chip${active}" data-switch="${escapeHtml(r.id)}">${escapeHtml(nm)}</span>`;
+    }).join("");
+    const emptyHint = list.length ? "" : `<span class="cs-chip">暂无历史</span>`;
+    el.innerHTML = `<div class="cs-av">${escapeHtml((curName || "候").slice(0, 1))}</div>
+      <div><div class="cs-nm">${escapeHtml(curName || "候选人")} <span class="cs-pos">· ${escapeHtml(curPos || "当前分析")}</span></div></div>
+      <div class="cs-chips">${chips}${emptyHint}<span class="cs-chip new" data-newcand>+ 新候选人</span></div>`;
+    el.querySelectorAll("[data-switch]").forEach(c => c.addEventListener("click", () => loadRecord(c.dataset.switch)));
+    el.querySelector("[data-newcand]").addEventListener("click", clearForm);
+  }
+  document.getElementById("candidateName").addEventListener("input", renderCandSwitch);
+  // 初次渲染候选人切换条
+  renderCandSwitch();
+  // 从服务端存档读回历史（关机/升级后仍可恢复）
+  loadArchiveFromServer();
 </script>
 </body>
 </html>
