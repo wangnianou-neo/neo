@@ -130,6 +130,37 @@ def logout():
     return redirect(url_for("login"))
 
 
+NAME_NOISE_RE = re.compile(r"简历|候选人|应聘|求职|岗位|职位|负责人|主管|经理|总监|专员|招聘|面试")
+
+
+def extract_person_name(raw):
+    s = (raw or "").strip()
+    if not s:
+        return ""
+    s = re.sub(r"\.(pdf|docx?|txt|md|json)$", "", s, flags=re.IGNORECASE)
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(r"[【（(\[][^【】（）()\[\]]*[】）)\]]", " ", s)
+    parts = re.split(r"[\s_\-—·｜|,，、/\\]+", s)
+    cand = [p for p in parts if re.fullmatch(r"[\u4e00-\u9fa5]{2,4}", p) and not NAME_NOISE_RE.search(p)]
+    if cand:
+        return cand[0]
+    m = re.findall(r"[\u4e00-\u9fa5]{2,4}", NAME_NOISE_RE.sub(" ", s))
+    return m[0] if m else ""
+
+
+def clean_person_name(name):
+    n = (name or "").strip()
+    if not n:
+        return ""
+    if re.search(r"[【（(\[]", n) or re.search(r"\d", n) or NAME_NOISE_RE.search(n):
+        p = extract_person_name(n)
+        if p:
+            return p
+    return n
+
+
 def extract_candidate_name(markdown):
     patterns = [
         r"^#\s*([^\n#：:|]+)",
@@ -141,7 +172,7 @@ def extract_candidate_name(markdown):
         if match:
             name = match.group(1).strip()
             if name and name not in {"候选人", "未提供", "（未提供）"}:
-                return name
+                return clean_person_name(name) or name
     return "候选人"
 
 
@@ -196,26 +227,64 @@ def get_client():
     if client is None:
         if not getattr(config, "API_KEY", ""):
             raise RuntimeError("请先设置环境变量 OPENROUTER_API_KEY。")
-        client = OpenAI(api_key=config.API_KEY, base_url=config.API_BASE)
+        client = OpenAI(
+            api_key=config.API_KEY,
+            base_url=config.API_BASE,
+            timeout=getattr(config, "LLM_TIMEOUT", 240),
+            max_retries=0,
+        )
     return client
+
+
+def _chat_once(messages):
+    response = get_client().chat.completions.create(
+        model=config.MODEL,
+        max_tokens=config.MAX_TOKENS,
+        messages=messages,
+        extra_headers={
+            "HTTP-Referer": "http://localhost:5000",
+            "X-Title": "CEO Interview Copilot",
+        },
+    )
+    log_usage(response.usage)
+    choice = response.choices[0]
+    return choice.message.content or "", getattr(choice, "finish_reason", None)
 
 
 def call_llm(prompt):
     last_error = None
+    max_continuations = int(getattr(config, "MAX_CONTINUATIONS", 4))
     for attempt in range(2):
         try:
             print(f"[LLM] attempt={attempt + 1} prompt_chars={len(prompt)} model={config.MODEL}")
-            response = get_client().chat.completions.create(
-                model=config.MODEL,
-                max_tokens=config.MAX_TOKENS,
-                messages=[{"role": "user", "content": prompt}],
-                extra_headers={
-                    "HTTP-Referer": "http://localhost:5000",
-                    "X-Title": "CEO Interview Copilot",
-                },
-            )
-            log_usage(response.usage)
-            return response.choices[0].message.content
+            messages = [{"role": "user", "content": prompt}]
+            content, finish_reason = _chat_once(messages)
+            # 自动续写：被截断时让模型从断点继续，拼接成完整内容
+            continuations = 0
+            while finish_reason == "length" and continuations < max_continuations:
+                continuations += 1
+                print(f"[LLM] 输出被截断，自动续写 第 {continuations} 次")
+                tail = content[-2000:]
+                messages = [
+                    {"role": "user", "content": prompt},
+                    {"role": "assistant", "content": content},
+                    {"role": "user", "content": (
+                        "上一条回复因长度限制被截断了。请直接从被截断处继续输出剩余内容，"
+                        "不要重复已经输出的部分，不要加任何前言或寒暄，不要重写开头。"
+                        f"\n\n（已输出内容的结尾片段，供你定位续写位置）：\n{tail}"
+                    )},
+                ]
+                more, finish_reason = _chat_once(messages)
+                content += more
+            if finish_reason == "length":
+                print(f"[LLM WARNING] 续写 {max_continuations} 次后仍被截断 max_tokens={config.MAX_TOKENS}")
+                content += (
+                    f"\n\n---\n> ⚠️ **内容较长，自动续写 {max_continuations} 次后仍未完成。**"
+                    f"\n> 可调高环境变量 `MAX_TOKENS` 或 `MAX_CONTINUATIONS` 后重启服务再试。"
+                )
+            elif continuations:
+                print(f"[LLM] 自动续写完成，共续写 {continuations} 次，总长度 {len(content)} 字符")
+            return content
         except Exception as e:
             last_error = e
             print(f"[LLM ERROR] attempt={attempt + 1} type={type(e).__name__} error={str(e)}")
@@ -325,13 +394,54 @@ def render(template_name, variables):
 
 
 def save_output(candidate_name, filename, content):
-    safe_name = "".join(c for c in candidate_name if c not in r'\\/:*?"<>|').strip() or "候选人"
+    name = clean_person_name(candidate_name) or candidate_name or "候选人"
+    safe_name = "".join(c for c in name if c not in r'\\/:*?"<>|').strip() or "候选人"
     date = current_date()
     folder = Path("outputs") / f"{date}_{safe_name}"
     folder.mkdir(parents=True, exist_ok=True)
     output_path = folder / filename
     output_path.write_text(content, encoding="utf-8")
     return str(output_path)
+
+
+ARCHIVE_PATH = Path("outputs") / "archive.json"
+
+
+def load_archive():
+    if not ARCHIVE_PATH.exists():
+        return []
+    try:
+        data = json.loads(ARCHIVE_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def save_archive(records):
+    ARCHIVE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp = ARCHIVE_PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(ARCHIVE_PATH)
+
+
+@app.route("/api/archive", methods=["GET"])
+@login_required
+def api_archive_get():
+    return jsonify({"records": load_archive()})
+
+
+@app.route("/api/archive", methods=["POST"])
+@login_required
+def api_archive_post():
+    data = request.get_json(silent=True) or {}
+    records = data.get("records")
+    if not isinstance(records, list):
+        return jsonify({"error": "records 必须是数组"}), 400
+    try:
+        save_archive(records)
+        return jsonify({"ok": True, "count": len(records)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/")
@@ -397,6 +507,7 @@ def api_pre_interview():
     jd = data.get("jd", "")
     weights = data.get("weights", "")
     department_style = data.get("department_style", "")
+    business_challenge = data.get("business_challenge", "")
     if not resume_md or not jd:
         return jsonify({"error": "简历或 JD 不能为空"}), 400
     try:
@@ -406,6 +517,7 @@ def api_pre_interview():
             "AMIRO_STANDARD": read_file("standards/AMIRO_talent_standard.md"),
             "POSITION_WEIGHTS": weights,
             "DEPARTMENT_STYLE": department_style,
+            "BUSINESS_CHALLENGE": business_challenge,
             "候选人姓名": candidate_name,
             "CURRENT_DATE": current_date(),
         })
@@ -425,6 +537,7 @@ def api_interview_plan():
     jd = data.get("jd", "")
     weights = data.get("weights", "")
     department_style = data.get("department_style", "")
+    business_challenge = data.get("business_challenge", "")
     pre_report = data.get("pre_report", "")
     if not resume_md or not pre_report:
         return jsonify({"error": "简历或作战图不能为空"}), 400
@@ -435,12 +548,50 @@ def api_interview_plan():
             "AMIRO_STANDARD": read_file("standards/AMIRO_talent_standard.md"),
             "POSITION_WEIGHTS": weights,
             "DEPARTMENT_STYLE": department_style,
+            "BUSINESS_CHALLENGE": business_challenge,
             "PRE_INTERVIEW_REPORT": pre_report,
             "候选人姓名": candidate_name,
             "CURRENT_DATE": current_date(),
         })
         result = call_llm(prompt)
         save_output(candidate_name, "03_面试追问卡.md", result)
+        return jsonify({"markdown": result})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/pre_screen_compare", methods=["POST"])
+@login_required
+def api_pre_screen_compare():
+    data = request.get_json(silent=True) or {}
+    position = (data.get("position") or "未分类岗位").strip()
+    jd = data.get("jd", "")
+    weights = data.get("weights", "")
+    candidates = data.get("candidates", [])
+    if not isinstance(candidates, list) or len(candidates) < 2:
+        return jsonify({"error": "至少需要 2 位完成前三轮的候选人才能预筛对比"}), 400
+    blocks = []
+    for i, c in enumerate(candidates, 1):
+        name = (c.get("name") or f"候选人{i}").strip()
+        resume = c.get("resume", "") or "（无）"
+        pre = c.get("pre", "") or "（无）"
+        plan = c.get("plan", "") or "（无）"
+        blocks.append(
+            f"========== 候选人 {i}：{name} ==========\n\n"
+            f"### 【{name}】简历解析\n{resume}\n\n"
+            f"### 【{name}】面试前作战图\n{pre}\n\n"
+            f"### 【{name}】面试追问卡\n{plan}\n"
+        )
+    try:
+        prompt = render("04_pre_screen_compare.md", {
+            "JD": jd,
+            "POSITION_WEIGHTS": weights,
+            "AMIRO_STANDARD": read_file("standards/AMIRO_talent_standard.md"),
+            "CANDIDATES": "\n\n".join(blocks),
+            "岗位名": position,
+            "CURRENT_DATE": current_date(),
+        })
+        result = call_llm(prompt)
         return jsonify({"markdown": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -455,6 +606,7 @@ def api_post_interview_eval():
     jd = data.get("jd", "")
     weights = data.get("weights", "")
     department_style = data.get("department_style", "")
+    business_challenge = data.get("business_challenge", "")
     pre_report = data.get("pre_report", "")
     interview_plan = data.get("interview_plan", "")
     try:
@@ -467,6 +619,7 @@ def api_post_interview_eval():
             "AMIRO_STANDARD": read_file("standards/AMIRO_talent_standard.md"),
             "POSITION_WEIGHTS": weights,
             "DEPARTMENT_STYLE": department_style,
+            "BUSINESS_CHALLENGE": business_challenge,
             "PRE_INTERVIEW_REPORT": pre_report,
             "INTERVIEW_PLAN": interview_plan,
             "INTERVIEW_NOTES": interview_notes,
