@@ -4,6 +4,7 @@ import re
 import json
 import time
 import os
+import threading
 from datetime import datetime
 from pathlib import Path
 from functools import wraps
@@ -352,14 +353,42 @@ def sse_pack(obj):
 
 
 def stream_llm_sse(prompt, on_done=None):
-    """以 SSE 流式返回 LLM 输出，持续吐数据避免线上代理超时；支持有限次自动续写。"""
+    """以 SSE 流式返回 LLM 输出，持续吐数据避免线上代理超时；支持有限次自动续写。
+
+    prompt 可以是字符串，也可以是一个无参函数（用于把耗时的预处理——如附件 OCR / Word 解析——
+    延迟到流开始之后执行，期间持续发送心跳，避免连接在出首字节前被代理掐断）。
+    注意：传入的函数不能依赖 Flask request 上下文（请在路由里先把所需数据读取好再闭包捕获）。
+    """
     def gen():
         full = []
+        # 立刻吐一个 SSE 注释，第一时间建立连接，预处理期间也保持连接活跃
+        yield ": connected\n\n"
         try:
-            messages = [{"role": "user", "content": prompt}]
+            if callable(prompt):
+                box = {}
+                done_evt = threading.Event()
+
+                def _build():
+                    try:
+                        box["v"] = prompt()
+                    except Exception as exc:
+                        box["e"] = exc
+                    finally:
+                        done_evt.set()
+
+                t = threading.Thread(target=_build, daemon=True)
+                t.start()
+                while not done_evt.wait(timeout=5):
+                    yield ": working\n\n"
+                if "e" in box:
+                    raise box["e"]
+                real_prompt = box["v"]
+            else:
+                real_prompt = prompt
+            messages = [{"role": "user", "content": real_prompt}]
             max_cont = int(getattr(config, "MAX_CONTINUATIONS", 1))
             cont = 0
-            print(f"[STREAM] start prompt_chars={len(prompt)} model={config.MODEL}")
+            print(f"[STREAM] start prompt_chars={len(real_prompt)} model={config.MODEL}")
             while True:
                 finish = None
                 for delta, fr in _chat_stream(messages):
@@ -447,6 +476,38 @@ def parse_image(file_stream):
         raise RuntimeError("缺少图片 OCR 依赖，请运行：pip3 install -r requirements.txt，并确保本机已安装 tesseract。") from exc
     image = Image.open(file_stream)
     return pytesseract.image_to_string(image, lang="chi_sim+eng")
+
+
+def parse_interview_file_bytes(filename, data):
+    """与 parse_interview_file 相同，但基于已读取的 bytes，可在无 request 上下文的线程中执行。"""
+    filename = filename or "未命名文件"
+    suffix = Path(filename).suffix.lower()
+    stream = io.BytesIO(data)
+    if suffix == ".pdf":
+        text = parse_pdf(stream)
+    elif suffix == ".docx":
+        text = parse_docx(stream)
+    elif suffix in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"}:
+        text = parse_image(stream)
+    elif suffix in {".txt", ".md"}:
+        text = data.decode("utf-8", errors="ignore")
+    elif suffix == ".doc":
+        raise RuntimeError(f"{filename} 是旧版 .doc 格式，暂不支持。请另存为 .docx 后上传。")
+    else:
+        raise RuntimeError(f"{filename} 的格式暂不支持，请上传 PDF、Word(.docx)、图片、TXT 或 Markdown。")
+    if not text.strip():
+        raise RuntimeError(f"{filename} 未解析出文字，可能是扫描件或图片 OCR 失败。")
+    return f"## 文件：{filename}\n\n{text.strip()}"
+
+
+def build_interview_notes(manual_notes, files_raw):
+    """从已捕获的数据(无需 request)拼出面试纪要；files_raw 为 [(filename, bytes), ...]。"""
+    parts = []
+    if (manual_notes or "").strip():
+        parts.append("## 手动输入\n\n" + manual_notes.strip())
+    for filename, data in files_raw:
+        parts.append(parse_interview_file_bytes(filename, data))
+    return "\n\n---\n\n".join(parts)
 
 
 def parse_interview_file(file_storage):
@@ -724,14 +785,33 @@ def api_post_interview_eval():
     business_challenge = data.get("business_challenge", "")
     pre_report = data.get("pre_report", "")
     interview_plan = data.get("interview_plan", "")
-    try:
-        interview_notes = collect_interview_notes()
-        if not resume_md or not pre_report or not interview_plan or not interview_notes:
-            return jsonify({"error": "简历、作战图、追问卡或面试记录不能为空"}), 400
-        prompt = render("03_post_interview_eval.md", {
+    if not resume_md or not pre_report or not interview_plan:
+        return jsonify({"error": "简历、作战图或追问卡不能为空"}), 400
+
+    # 在请求上下文里快速读取上传附件的原始字节(I/O 很快)，把耗时的解析/OCR 延迟到流内进行
+    manual_notes = ""
+    files_raw = []
+    if request.content_type and request.content_type.startswith("multipart/form-data"):
+        manual_notes = request.form.get("interview_notes", "")
+        for fs in request.files.getlist("interview_files"):
+            if fs and fs.filename:
+                files_raw.append((fs.filename, fs.read()))
+    else:
+        manual_notes = (request.get_json(silent=True) or {}).get("interview_notes", "")
+    if not manual_notes.strip() and not files_raw:
+        return jsonify({"error": "缺少面试记录 / 附件，无法生成评判"}), 400
+
+    cur_date = current_date()
+    amiro_standard = read_file("standards/AMIRO_talent_standard.md")
+
+    def build_prompt():
+        interview_notes = build_interview_notes(manual_notes, files_raw)
+        if not interview_notes.strip():
+            raise RuntimeError("面试记录解析为空，请检查附件内容或改用文字粘贴。")
+        return render("03_post_interview_eval.md", {
             "JD": jd,
             "RESUME": resume_md,
-            "AMIRO_STANDARD": read_file("standards/AMIRO_talent_standard.md"),
+            "AMIRO_STANDARD": amiro_standard,
             "POSITION_WEIGHTS": weights,
             "DEPARTMENT_STYLE": department_style,
             "BUSINESS_CHALLENGE": business_challenge,
@@ -739,11 +819,9 @@ def api_post_interview_eval():
             "INTERVIEW_PLAN": interview_plan,
             "INTERVIEW_NOTES": interview_notes,
             "候选人姓名": candidate_name,
-            "CURRENT_DATE": current_date(),
+            "CURRENT_DATE": cur_date,
         })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    return stream_llm_sse(prompt, lambda content: save_output(candidate_name, "04_面试后评判.md", content))
+    return stream_llm_sse(build_prompt, lambda content: save_output(candidate_name, "04_面试后评判.md", content))
 
 
 if __name__ == "__main__":
