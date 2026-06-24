@@ -4,7 +4,7 @@ services:
     env: python
     plan: starter
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT --workers 2 --timeout 300
+    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 600
     envVars:
       - key: OPENROUTER_API_KEY
         sync: false
@@ -13,9 +13,9 @@ services:
       - key: OPENROUTER_MODEL
         value: anthropic/claude-sonnet-4.5
       - key: MAX_TOKENS
-        value: "9000"
+        value: "16000"
       - key: MAX_CONTINUATIONS
-        value: "2"
+        value: "1"
       - key: LLM_TIMEOUT
         value: "240"
       - key: APP_PASSWORD
