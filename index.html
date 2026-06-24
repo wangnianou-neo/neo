@@ -693,6 +693,22 @@
       interviewFiles.dispatchEvent(new Event("change"));
     }
   });
+  // 统一安全解析：服务端偶发返回 HTML（如线上代理超时/502），避免崩成 "Unexpected token '<'"
+  async function safeJson(res) {
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : {}; }
+    catch (e) {
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        throw new Error(`服务器繁忙或超时（HTTP ${res.status}）。该步骤耗时较长，请稍等片刻后点「重新生成本步骤」重试。`);
+      }
+      if (res.status === 401) throw new Error("登录已失效，请刷新页面重新输入访问密码。");
+      const snippet = text.slice(0, 100).replace(/\s+/g, " ").trim();
+      throw new Error(`服务器返回了非预期内容（HTTP ${res.status}）：${snippet || "空响应"}。请稍后重试。`);
+    }
+    if (!res.ok) throw new Error(data && data.error ? data.error : `HTTP ${res.status}`);
+    return data;
+  }
   fetch("/api/health")
     .then(res => res.json())
     .then(data => {
@@ -1144,7 +1160,7 @@
     try {
       clearError();
       const jdRes = await fetch("/api/generate_jd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ raw_description: rawJd }) });
-      const jdData = await jdRes.json();
+      const jdData = await safeJson(jdRes);
       if (jdData.error) throw new Error(jdData.error);
       formalJdText.value = jdData.markdown;
       btn.textContent = "✅ 已生成正式 JD";
@@ -1188,7 +1204,7 @@
       formData.append("file", file);
       formData.append("candidate_name", "候选人");
       let res = await fetch("/api/parse_resume", { method: "POST", body: formData });
-      let data = await res.json();
+      let data = await safeJson(res);
       if (data.error) throw new Error(data.error);
       results.resume = data.markdown;
       candidateName = data.candidate_name || getCandidateName();
@@ -1199,7 +1215,7 @@
 
       switchTab("pre"); showLoading("面试前作战图", "pre");
       res = await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) });
-      data = await res.json();
+      data = await safeJson(res);
       if (data.error) throw new Error(data.error);
       results.pre = data.markdown;
       stepState.pre = "done";
@@ -1208,7 +1224,7 @@
 
       switchTab("plan"); showLoading("面试追问卡", "plan");
       res = await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) });
-      data = await res.json();
+      data = await safeJson(res);
       if (data.error) throw new Error(data.error);
       results.plan = data.markdown;
       stepState.plan = "done";
@@ -1289,7 +1305,7 @@
       const fd = new FormData();
       fd.append("file", file);
       fd.append("candidate_name", "候选人");
-      let data = await (await fetch("/api/parse_resume", { method: "POST", body: fd })).json();
+      let data = await safeJson(await fetch("/api/parse_resume", { method: "POST", body: fd }));
       if (data.error) throw new Error(data.error);
       const resume = data.markdown;
       const rawName = (data.candidate_name && data.candidate_name !== "候选人") ? data.candidate_name : file.name;
@@ -1297,12 +1313,12 @@
       it.name = name;
 
       it.stat = "作战图生成中…"; renderBatchProgress();
-      data = await (await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge }) })).json();
+      data = await safeJson(await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge }) }));
       if (data.error) throw new Error(data.error);
       const pre = data.markdown;
 
       it.stat = "追问卡生成中…"; renderBatchProgress();
-      data = await (await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge, pre_report: pre }) })).json();
+      data = await safeJson(await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge, pre_report: pre }) }));
       if (data.error) throw new Error(data.error);
       const plan = data.markdown;
 
@@ -1402,19 +1418,19 @@
         const fd = new FormData();
         fd.append("file", fileInput.files[0]);
         fd.append("candidate_name", candidateName);
-        data = await (await fetch("/api/parse_resume", { method: "POST", body: fd })).json();
+        data = await safeJson(await fetch("/api/parse_resume", { method: "POST", body: fd }));
         if (data.error) throw new Error(data.error);
         results.resume = data.markdown;
         const nm = data.candidate_name || candidateName;
         document.getElementById("candidateName").value = nm;
       } else if (tab === "pre") {
         if (!results.resume) throw new Error("缺少简历解析，无法重新生成作战图");
-        data = await (await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) })).json();
+        data = await safeJson(await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) }));
         if (data.error) throw new Error(data.error);
         results.pre = data.markdown;
       } else if (tab === "plan") {
         if (!results.resume || !results.pre) throw new Error("缺少简历或作战图，无法重新生成追问卡");
-        data = await (await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) })).json();
+        data = await safeJson(await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) }));
         if (data.error) throw new Error(data.error);
         results.plan = data.markdown;
       } else if (tab === "eval") {
@@ -1433,7 +1449,7 @@
         fd.append("interview_plan", results.plan);
         fd.append("interview_notes", interview_notes);
         selectedFiles.forEach(f => fd.append("interview_files", f));
-        data = await (await fetch("/api/post_interview_eval", { method: "POST", body: fd })).json();
+        data = await safeJson(await fetch("/api/post_interview_eval", { method: "POST", body: fd }));
         if (data.error) throw new Error(data.error);
         results.eval = data.markdown;
       }
@@ -1517,7 +1533,7 @@
       const records = loadHistory();
       const res = await fetch("/api/archive", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ records }) });
       if (!res.ok) throw new Error("服务端保存失败（HTTP " + res.status + "）");
-      const data = await res.json();
+      const data = await safeJson(res);
       if (btn) { btn.textContent = "✅ 已保存"; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800); }
       else alert("已保存。");
       console.log("存档已保存，共", data.count, "位候选人");
@@ -1670,7 +1686,7 @@
       formData.append("interview_notes", interview_notes);
       selectedFiles.forEach(file => formData.append("interview_files", file));
       const res = await fetch("/api/post_interview_eval", { method: "POST", body: formData });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (data.error) throw new Error(data.error);
       results.eval = data.markdown;
       stepState.eval = "done";
@@ -1717,7 +1733,7 @@
     try {
       const res = await fetch("/api/archive");
       if (!res.ok) return;
-      const data = await res.json();
+      const data = await safeJson(res);
       const serverList = Array.isArray(data.records) ? data.records : [];
       const merged = mergeRecords(loadHistory(), serverList);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(merged));
@@ -2142,7 +2158,7 @@
         candidates: recs.map(r => ({ name: resolveCandidateName(r), resume: (r.results || {}).resume || "", pre: (r.results || {}).pre || "", plan: (r.results || {}).plan || "" }))
       };
       const res = await fetch("/api/pre_screen_compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
       renderPreScreenResult(result, data.markdown || "");
     } catch (e) {
