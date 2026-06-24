@@ -709,6 +709,48 @@
     if (!res.ok) throw new Error(data && data.error ? data.error : `HTTP ${res.status}`);
     return data;
   }
+  // 流式读取 SSE：边生成边回调 onDelta(完整文本)，持续吐数据避免线上长请求被代理掐断(Failed to fetch)
+  async function streamMarkdown(url, opts, onDelta) {
+    const res = await fetch(url, opts);
+    const ct = res.headers.get("content-type") || "";
+    if (!res.ok || !ct.includes("text/event-stream")) {
+      const d = await safeJson(res);
+      return { markdown: d.markdown || "", meta: d };
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "", full = "", meta = {};
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf("\n\n")) >= 0) {
+        const raw = buf.slice(0, idx); buf = buf.slice(idx + 2);
+        const line = raw.startsWith("data:") ? raw.slice(5).trim() : raw.trim();
+        if (!line) continue;
+        let evt; try { evt = JSON.parse(line); } catch (e) { continue; }
+        if (evt.error) throw new Error(evt.error);
+        if (evt.delta) { full += evt.delta; if (onDelta) onDelta(full, evt.delta); }
+        if (evt.done) meta = evt;
+      }
+    }
+    return { markdown: full, meta };
+  }
+  // 生成边流式渲染到指定步骤的输出区(节流，避免每个 delta 都重排)
+  function makeStreamRenderer(tabName) {
+    const content = document.getElementById("outputContent");
+    let last = 0;
+    return (full) => {
+      if (tabName !== currentTab) return;
+      const now = Date.now();
+      if (now - last < 400) return;
+      last = now;
+      content.classList.remove("empty");
+      content.innerHTML = `<div class="markdown stream-live">${marked.parse(full)}</div>`;
+      content.scrollTop = content.scrollHeight;
+    };
+  }
   fetch("/api/health")
     .then(res => res.json())
     .then(data => {
@@ -1159,13 +1201,11 @@
     btn.textContent = "⏳ 正在生成 JD...";
     try {
       clearError();
-      const jdRes = await fetch("/api/generate_jd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ raw_description: rawJd }) });
-      const jdData = await safeJson(jdRes);
-      if (jdData.error) throw new Error(jdData.error);
-      formalJdText.value = jdData.markdown;
+      const jdR = await streamMarkdown("/api/generate_jd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ raw_description: rawJd }) }, (full) => { formalJdText.value = full; });
+      formalJdText.value = jdR.markdown;
       btn.textContent = "✅ 已生成正式 JD";
       setTimeout(() => { btn.textContent = "✨ 重新生成正式 JD"; btn.disabled = false; }, 1600);
-      return jdData.markdown;
+      return jdR.markdown;
     } catch (e) {
       showError(e.message);
       formalJdText.value = `JD 生成失败：${e.message}\n\n请检查：\n1. 本地或 Render 是否已配置 OPENROUTER_API_KEY\n2. OpenRouter 账户是否有余额\n3. 网络是否能访问 OpenRouter`;
@@ -1203,30 +1243,24 @@
       const formData = new FormData();
       formData.append("file", file);
       formData.append("candidate_name", "候选人");
-      let res = await fetch("/api/parse_resume", { method: "POST", body: formData });
-      let data = await safeJson(res);
-      if (data.error) throw new Error(data.error);
-      results.resume = data.markdown;
-      candidateName = data.candidate_name || getCandidateName();
+      let r = await streamMarkdown("/api/parse_resume", { method: "POST", body: formData }, makeStreamRenderer("resume"));
+      results.resume = r.markdown;
+      candidateName = (r.meta && r.meta.candidate_name) || getCandidateName();
       document.getElementById("candidateName").value = candidateName;
       stepState.resume = "done";
       markTabDone("resume"); renderCurrent();
       saveCurrentToHistory({ status: "简历已解析", resumeFileName: file.name });
 
       switchTab("pre"); showLoading("面试前作战图", "pre");
-      res = await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) });
-      data = await safeJson(res);
-      if (data.error) throw new Error(data.error);
-      results.pre = data.markdown;
+      r = await streamMarkdown("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) }, makeStreamRenderer("pre"));
+      results.pre = r.markdown;
       stepState.pre = "done";
       markTabDone("pre"); renderCurrent();
       saveCurrentToHistory({ status: "作战图已生成", resumeFileName: file.name });
 
       switchTab("plan"); showLoading("面试追问卡", "plan");
-      res = await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) });
-      data = await safeJson(res);
-      if (data.error) throw new Error(data.error);
-      results.plan = data.markdown;
+      r = await streamMarkdown("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) }, makeStreamRenderer("plan"));
+      results.plan = r.markdown;
       stepState.plan = "done";
       markTabDone("plan"); renderCurrent();
       saveCurrentToHistory({ status: "追问卡已生成", resumeFileName: file.name });
@@ -1305,22 +1339,19 @@
       const fd = new FormData();
       fd.append("file", file);
       fd.append("candidate_name", "候选人");
-      let data = await safeJson(await fetch("/api/parse_resume", { method: "POST", body: fd }));
-      if (data.error) throw new Error(data.error);
-      const resume = data.markdown;
-      const rawName = (data.candidate_name && data.candidate_name !== "候选人") ? data.candidate_name : file.name;
+      let d = await streamMarkdown("/api/parse_resume", { method: "POST", body: fd });
+      const resume = d.markdown;
+      const rawName = (d.meta && d.meta.candidate_name && d.meta.candidate_name !== "候选人") ? d.meta.candidate_name : file.name;
       const name = cleanName(rawName) || extractPersonName(file.name) || "候选人";
       it.name = name;
 
       it.stat = "作战图生成中…"; renderBatchProgress();
-      data = await safeJson(await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge }) }));
-      if (data.error) throw new Error(data.error);
-      const pre = data.markdown;
+      d = await streamMarkdown("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge }) });
+      const pre = d.markdown;
 
       it.stat = "追问卡生成中…"; renderBatchProgress();
-      data = await safeJson(await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge, pre_report: pre }) }));
-      if (data.error) throw new Error(data.error);
-      const plan = data.markdown;
+      d = await streamMarkdown("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: name, resume_md: resume, jd: ctx.jd, weights: ctx.weights, department_style: ctx.department_style, business_challenge: ctx.business_challenge, pre_report: pre }) });
+      const plan = d.markdown;
 
       const ts = new Date().toISOString();
       const record = {
@@ -1418,20 +1449,17 @@
         const fd = new FormData();
         fd.append("file", fileInput.files[0]);
         fd.append("candidate_name", candidateName);
-        data = await safeJson(await fetch("/api/parse_resume", { method: "POST", body: fd }));
-        if (data.error) throw new Error(data.error);
+        data = await streamMarkdown("/api/parse_resume", { method: "POST", body: fd }, makeStreamRenderer("resume"));
         results.resume = data.markdown;
-        const nm = data.candidate_name || candidateName;
+        const nm = (data.meta && data.meta.candidate_name) || candidateName;
         document.getElementById("candidateName").value = nm;
       } else if (tab === "pre") {
         if (!results.resume) throw new Error("缺少简历解析，无法重新生成作战图");
-        data = await safeJson(await fetch("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) }));
-        if (data.error) throw new Error(data.error);
+        data = await streamMarkdown("/api/pre_interview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge }) }, makeStreamRenderer("pre"));
         results.pre = data.markdown;
       } else if (tab === "plan") {
         if (!results.resume || !results.pre) throw new Error("缺少简历或作战图，无法重新生成追问卡");
-        data = await safeJson(await fetch("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) }));
-        if (data.error) throw new Error(data.error);
+        data = await streamMarkdown("/api/interview_plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate_name: candidateName, resume_md: results.resume, jd, weights, department_style, business_challenge, pre_report: results.pre }) }, makeStreamRenderer("plan"));
         results.plan = data.markdown;
       } else if (tab === "eval") {
         const interview_notes = document.getElementById("interviewNotes").value.trim();
@@ -1449,8 +1477,7 @@
         fd.append("interview_plan", results.plan);
         fd.append("interview_notes", interview_notes);
         selectedFiles.forEach(f => fd.append("interview_files", f));
-        data = await safeJson(await fetch("/api/post_interview_eval", { method: "POST", body: fd }));
-        if (data.error) throw new Error(data.error);
+        data = await streamMarkdown("/api/post_interview_eval", { method: "POST", body: fd }, makeStreamRenderer("eval"));
         results.eval = data.markdown;
       }
       stepState[tab] = "done";
@@ -1685,9 +1712,7 @@
       formData.append("interview_plan", results.plan);
       formData.append("interview_notes", interview_notes);
       selectedFiles.forEach(file => formData.append("interview_files", file));
-      const res = await fetch("/api/post_interview_eval", { method: "POST", body: formData });
-      const data = await safeJson(res);
-      if (data.error) throw new Error(data.error);
+      const data = await streamMarkdown("/api/post_interview_eval", { method: "POST", body: formData }, makeStreamRenderer("eval"));
       results.eval = data.markdown;
       stepState.eval = "done";
       markTabDone("eval"); renderCurrent();
@@ -2157,9 +2182,13 @@
         weights: m0.weights || "",
         candidates: recs.map(r => ({ name: resolveCandidateName(r), resume: (r.results || {}).resume || "", pre: (r.results || {}).pre || "", plan: (r.results || {}).plan || "" }))
       };
-      const res = await fetch("/api/pre_screen_compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      const data = await safeJson(res);
-      if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+      let lastTick = 0;
+      const data = await streamMarkdown("/api/pre_screen_compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }, (full) => {
+        const now = Date.now();
+        if (now - lastTick < 400) return;
+        lastTick = now;
+        result.innerHTML = `<div class="markdown stream-live">${marked.parse(full)}</div>`;
+      });
       renderPreScreenResult(result, data.markdown || "");
     } catch (e) {
       result.innerHTML = `<div class="error">AI 预筛失败：${escapeHtml(e.message)}</div>`;

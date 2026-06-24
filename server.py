@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from functools import wraps
-from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for
+from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, Response, stream_with_context
 from flask_cors import CORS
 import pdfplumber
 from openai import OpenAI
@@ -176,8 +176,8 @@ def extract_candidate_name(markdown):
     return "候选人"
 
 
-def generate_formal_jd(raw_description):
-    prompt = f"""
+def jd_prompt(raw_description):
+    return f"""
 你是一位资深招聘负责人。请把用户输入的岗位描述整理成一份正式、清晰、可用于候选人适配度评估的 JD。
 
 ## 当前日期
@@ -208,7 +208,10 @@ def generate_formal_jd(raw_description):
 
 ## 用于面试验证的重点
 """
-    return call_llm(prompt)
+
+
+def generate_formal_jd(raw_description):
+    return call_llm(jd_prompt(raw_description))
 
 
 def log_usage(usage):
@@ -304,6 +307,108 @@ def call_llm(prompt):
                 raise RuntimeError("连接 OpenRouter 失败，请检查网络。")
             break
     raise RuntimeError(f"LLM 调用失败：{str(last_error)}")
+
+
+def friendly_llm_error(msg):
+    m = (msg or "").lower()
+    if "401" in m or "authentication" in m or "api key" in m:
+        return "OpenRouter API Key 无效或未配置，请检查环境变量 OPENROUTER_API_KEY。"
+    if "quota" in m or "credit" in m or "billing" in m or "insufficient" in m:
+        return "OpenRouter 账户额度不足或计费异常，请检查 OpenRouter 余额。"
+    if "rate" in m or "429" in m:
+        return "调用频率过高，请稍后重试。"
+    if "timeout" in m or "connection" in m or "network" in m:
+        return "连接 OpenRouter 失败，请检查网络后重试。"
+    return f"生成失败：{msg}"
+
+
+def _chat_stream(messages):
+    """逐块产出 (delta_text, finish_reason)；流结束时 finish_reason 非空。"""
+    stream = get_client().chat.completions.create(
+        model=config.MODEL,
+        max_tokens=config.MAX_TOKENS,
+        messages=messages,
+        stream=True,
+        extra_headers={
+            "HTTP-Referer": "http://localhost:5000",
+            "X-Title": "CEO Interview Copilot",
+        },
+    )
+    finish = None
+    for chunk in stream:
+        if not getattr(chunk, "choices", None):
+            continue
+        ch = chunk.choices[0]
+        delta = getattr(ch.delta, "content", None) if getattr(ch, "delta", None) else None
+        if delta:
+            yield delta, None
+        if getattr(ch, "finish_reason", None):
+            finish = ch.finish_reason
+    yield None, finish or "stop"
+
+
+def sse_pack(obj):
+    return "data: " + json.dumps(obj, ensure_ascii=False) + "\n\n"
+
+
+def stream_llm_sse(prompt, on_done=None):
+    """以 SSE 流式返回 LLM 输出，持续吐数据避免线上代理超时；支持有限次自动续写。"""
+    def gen():
+        full = []
+        try:
+            messages = [{"role": "user", "content": prompt}]
+            max_cont = int(getattr(config, "MAX_CONTINUATIONS", 1))
+            cont = 0
+            print(f"[STREAM] start prompt_chars={len(prompt)} model={config.MODEL}")
+            while True:
+                finish = None
+                for delta, fr in _chat_stream(messages):
+                    if delta:
+                        full.append(delta)
+                        yield sse_pack({"delta": delta})
+                    if fr is not None:
+                        finish = fr
+                if finish == "length" and cont < max_cont:
+                    cont += 1
+                    print(f"[STREAM] 截断，自动续写 第 {cont} 次")
+                    content_so_far = "".join(full)
+                    messages = [
+                        {"role": "user", "content": prompt},
+                        {"role": "assistant", "content": content_so_far},
+                        {"role": "user", "content": (
+                            "上一条回复因长度限制被截断了。请直接从被截断处继续输出剩余内容，"
+                            "不要重复已经输出的部分，不要加任何前言或寒暄，不要重写开头。"
+                        )},
+                    ]
+                    continue
+                if finish == "length":
+                    warn = "\n\n---\n> ⚠️ **内容较长，自动续写后仍未完成。可在 Render 调高 `MAX_TOKENS` 或 `MAX_CONTINUATIONS`。**"
+                    full.append(warn)
+                    yield sse_pack({"delta": warn})
+                break
+            content = "".join(full)
+            meta = {"done": True}
+            if on_done:
+                try:
+                    extra = on_done(content)
+                    if extra:
+                        meta.update(extra)
+                except Exception as e:
+                    print(f"[STREAM] on_done error: {e}")
+            yield sse_pack(meta)
+            print(f"[STREAM] done total_chars={len(content)}")
+        except Exception as e:
+            print(f"[STREAM ERROR] type={type(e).__name__} error={str(e)}")
+            yield sse_pack({"error": friendly_llm_error(str(e))})
+    return Response(
+        stream_with_context(gen()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 def parse_pdf(file_stream):
@@ -468,10 +573,7 @@ def api_generate_jd():
     raw_description = data.get("raw_description", "")
     if not raw_description.strip():
         return jsonify({"error": "岗位描述不能为空"}), 400
-    try:
-        return jsonify({"markdown": generate_formal_jd(raw_description)})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return stream_llm_sse(jd_prompt(raw_description))
 
 
 @app.route("/api/parse_resume", methods=["POST"])
@@ -490,12 +592,14 @@ def api_parse_resume():
             "候选人姓名": candidate_name,
             "CURRENT_DATE": current_date(),
         })
-        result = call_llm(prompt)
-        extracted_name = extract_candidate_name(result)
-        save_output(extracted_name, "01_简历.md", result)
-        return jsonify({"markdown": result, "candidate_name": extracted_name})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+    def on_done(content):
+        extracted_name = extract_candidate_name(content)
+        save_output(extracted_name, "01_简历.md", content)
+        return {"candidate_name": extracted_name}
+    return stream_llm_sse(prompt, on_done)
 
 
 @app.route("/api/pre_interview", methods=["POST"])
@@ -521,11 +625,9 @@ def api_pre_interview():
             "候选人姓名": candidate_name,
             "CURRENT_DATE": current_date(),
         })
-        result = call_llm(prompt)
-        save_output(candidate_name, "02_面试前作战图.md", result)
-        return jsonify({"markdown": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    return stream_llm_sse(prompt, lambda content: save_output(candidate_name, "02_面试前作战图.md", content))
 
 
 @app.route("/api/interview_plan", methods=["POST"])
@@ -553,11 +655,9 @@ def api_interview_plan():
             "候选人姓名": candidate_name,
             "CURRENT_DATE": current_date(),
         })
-        result = call_llm(prompt)
-        save_output(candidate_name, "03_面试追问卡.md", result)
-        return jsonify({"markdown": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    return stream_llm_sse(prompt, lambda content: save_output(candidate_name, "03_面试追问卡.md", content))
 
 
 @app.route("/api/pre_screen_compare", methods=["POST"])
@@ -607,10 +707,9 @@ def api_pre_screen_compare():
             "岗位名": position,
             "CURRENT_DATE": current_date(),
         })
-        result = call_llm(prompt)
-        return jsonify({"markdown": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    return stream_llm_sse(prompt)
 
 
 @app.route("/api/post_interview_eval", methods=["POST"])
@@ -642,11 +741,9 @@ def api_post_interview_eval():
             "候选人姓名": candidate_name,
             "CURRENT_DATE": current_date(),
         })
-        result = call_llm(prompt)
-        save_output(candidate_name, "04_面试后评判.md", result)
-        return jsonify({"markdown": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    return stream_llm_sse(prompt, lambda content: save_output(candidate_name, "04_面试后评判.md", content))
 
 
 if __name__ == "__main__":
