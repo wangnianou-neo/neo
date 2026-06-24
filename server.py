@@ -570,17 +570,33 @@ def api_pre_screen_compare():
     candidates = data.get("candidates", [])
     if not isinstance(candidates, list) or len(candidates) < 2:
         return jsonify({"error": "至少需要 2 位完成前三轮的候选人才能预筛对比"}), 400
+
+    # 总量预算：模型上限 ~200K token，中文约 1 token/字，保留余量给模板与输出。
+    # 候选人材料整体控制在约 12 万字以内，按人数均分每人预算，避免人多时超限。
+    TOTAL_CHAR_BUDGET = 120000
+    per_cand = max(2000, TOTAL_CHAR_BUDGET // max(1, len(candidates)))
+    # 预筛排序最看重「简历 / 作战图」，追问卡价值较低且最长，预算分配靠后。
+    resume_cap = int(per_cand * 0.45)
+    pre_cap = int(per_cand * 0.40)
+    plan_cap = per_cand - resume_cap - pre_cap
+
+    def clip(text, cap):
+        text = text or "（无）"
+        if len(text) <= cap:
+            return text
+        return text[:cap].rstrip() + f"\n\n…（内容较长，为对比已截断，剩余约 {len(text) - cap} 字省略）"
+
     blocks = []
     for i, c in enumerate(candidates, 1):
         name = (c.get("name") or f"候选人{i}").strip()
-        resume = c.get("resume", "") or "（无）"
-        pre = c.get("pre", "") or "（无）"
-        plan = c.get("plan", "") or "（无）"
+        resume = clip(c.get("resume", ""), resume_cap)
+        pre = clip(c.get("pre", ""), pre_cap)
+        plan = clip(c.get("plan", ""), plan_cap)
         blocks.append(
             f"========== 候选人 {i}：{name} ==========\n\n"
             f"### 【{name}】简历解析\n{resume}\n\n"
             f"### 【{name}】面试前作战图\n{pre}\n\n"
-            f"### 【{name}】面试追问卡\n{plan}\n"
+            f"### 【{name}】面试追问卡（摘要）\n{plan}\n"
         )
     try:
         prompt = render("04_pre_screen_compare.md", {

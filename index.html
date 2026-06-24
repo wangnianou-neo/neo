@@ -263,10 +263,13 @@
   .hi-preview .pv-row { margin-bottom: 4px; }
   .hi-preview .pv-row b { color: #2c3e50; }
   /* 对比表 */
+  .cmp-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid #e3e8ee; border-radius: 8px; }
   .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .cmp-table th, .cmp-table td { border: 1px solid #e3e8ee; padding: 9px 12px; text-align: left; vertical-align: top; }
-  .cmp-table th { background: #f5f7fa; }
-  .cmp-table td.metric { background: #fafbfc; font-weight: 600; color: #4a5568; white-space: nowrap; }
+  .cmp-wrap .cmp-table { border: 0; }
+  .cmp-table th, .cmp-table td { border: 1px solid #e3e8ee; padding: 9px 12px; text-align: left; vertical-align: top; min-width: 150px; max-width: 260px; word-break: break-word; }
+  .cmp-table th { background: #f5f7fa; position: sticky; top: 0; z-index: 2; }
+  .cmp-table td.metric, .cmp-table th:first-child { background: #fafbfc; font-weight: 600; color: #4a5568; white-space: nowrap; position: sticky; left: 0; z-index: 1; min-width: 120px; }
+  .cmp-table th:first-child { z-index: 3; background: #f5f7fa; }
   .cmp-best { background: #eafaf0 !important; }
   .cmp-select-bar { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
   .cmp-pos-group { border: 1px solid #eef2f6; border-radius: 10px; padding: 12px; }
@@ -276,6 +279,27 @@
   .cmp-mode { padding: 7px 14px; border: 1px solid #dfe6ee; background: #f5f7fa; color: #5a6675; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
   .cmp-mode.active { background: var(--brand, #2c3e50); color: #fff; border-color: var(--brand, #2c3e50); }
   .cmp-summary { background: #f0f7ff; border: 1px solid #cfe3fb; border-left: 4px solid #2b7cff; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; font-weight: 600; color: #1a3a5c; }
+  /* 预筛卡片网格（横版自适应，永不溢出） */
+  .ps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .ps-card { border: 1px solid #e3e8ee; border-radius: 12px; padding: 14px 16px; background: #fff; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 3px rgba(20,40,80,.05); transition: box-shadow .15s, transform .15s; break-inside: avoid; }
+  .ps-toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 12px; }
+  .ps-toolbar .btn { max-width: 200px; }
+  .ps-card:hover { box-shadow: 0 6px 18px rgba(20,40,80,.10); transform: translateY(-2px); }
+  .ps-card.is-top { border-color: #2b7cff; box-shadow: 0 0 0 2px rgba(43,124,255,.15); }
+  .ps-card-head { display: flex; align-items: center; gap: 10px; }
+  .ps-rank { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: #eef4ff; color: #2563eb; font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .ps-card.is-top .ps-rank { background: #2b7cff; color: #fff; }
+  .ps-name { font-size: 16px; font-weight: 800; color: #1f2d3d; flex: 1; min-width: 0; word-break: break-word; }
+  .ps-fit { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5a6675; }
+  .ps-fit-bar { flex: 1; height: 8px; border-radius: 999px; background: #eef2f6; overflow: hidden; }
+  .ps-fit-bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#2b7cff,#5ea0ff); }
+  .ps-fit-num { font-weight: 800; color: #1f2d3d; font-size: 14px; }
+  .ps-oneliner { font-size: 13px; color: #3a4a5a; line-height: 1.55; background: #f8fafc; border-radius: 8px; padding: 8px 10px; }
+  .ps-block { font-size: 13px; }
+  .ps-block-title { font-weight: 700; color: #4a5568; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+  .ps-block ul { margin: 0; padding-left: 18px; color: #4a5568; line-height: 1.6; }
+  .ps-block.risk .ps-block-title { color: #c0392b; }
+  .ps-block.verify .ps-block-title { color: #b8860b; }
   /* CEO 批注 */
   .ceo-note { margin-top: 24px; border: 1px solid #f0d9a8; background: #fffdf6; border-radius: 12px; padding: 16px; }
   .ceo-note h3 { font-size: 15px; margin-bottom: 8px; color: #9a6a00; }
@@ -363,7 +387,10 @@
     @page { size: A4; margin: 14mm; }
     body { background: white; padding: 0; color: #111; font-size: 12pt; }
     body.printing .container { display: none; }
-    body.printing .print-area { display: block; }
+    body.printing .print-area { display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-area .ps-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .print-area .ps-card { box-shadow: none; }
+    .print-area .ps-card, .print-area .level-pill, .print-area .cmp-summary { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .print-area .markdown h1 { font-size: 20pt; margin: 0 0 12pt; border-bottom: 1pt solid #ddd; padding-bottom: 6pt; }
     .print-area .markdown h2 { font-size: 15pt; margin: 16pt 0 8pt; }
     .print-area .markdown h3 { font-size: 13pt; margin: 12pt 0 6pt; }
@@ -2124,30 +2151,62 @@
       if (btn) { btn.disabled = false; btn.textContent = orig; }
     }
   }
+  let lastPreScreenPosition = "";
   function renderPreScreenResult(container, md) {
     const match = md.match(PRESCREEN_RE);
     let data = null;
     if (match) { try { data = JSON.parse(match[1].trim()); } catch (e) { data = null; } }
     const body = md.replace(PRESCREEN_RE, "").trim();
+    lastPreScreenPosition = (data && data.position) || lastPreScreenPosition || "";
     let tableHtml = "";
     if (data && Array.isArray(data.ranking) && data.ranking.length) {
       const rk = data.ranking.slice().sort((a, b) => (a.priority || 99) - (b.priority || 99));
-      const head = `<tr><th>维度 / 候选人</th>${rk.map(c => `<th>#${c.priority || "?"} ${escapeHtml(c.name || "")}</th>`).join("")}</tr>`;
-      const rows = [];
-      const fits = rk.map(c => Number(c.fit_score) || 0);
-      const maxFit = Math.max(...fits);
-      rows.push(`<tr><td class="metric">是否值得 CEO 亲自面</td>${rk.map(c => `<td><span class="level-pill ${recommendPillClass(c.recommend)}">${escapeHtml(c.recommend || "—")}</span></td>`).join("")}</tr>`);
-      rows.push(`<tr><td class="metric">匹配度预判</td>${rk.map((c, i) => `<td class="${fits[i] === maxFit && maxFit > 0 ? "cmp-best" : ""}"><strong>${c.fit_score != null ? c.fit_score : "—"}</strong> / 100</td>`).join("")}</tr>`);
-      rows.push(`<tr><td class="metric">一句话画像</td>${rk.map(c => `<td>${escapeHtml(c.one_liner || "")}</td>`).join("")}</tr>`);
-      const listCell = arr => `<td>${Array.isArray(arr) && arr.length ? "<ul style='margin:0;padding-left:16px;'>" + arr.map(x => `<li>${escapeHtml(x)}</li>`).join("") + "</ul>" : "—"}</td>`;
-      rows.push(`<tr><td class="metric">亮点</td>${rk.map(c => listCell(c.highlights)).join("")}</tr>`);
-      rows.push(`<tr><td class="metric">风险 / 疑点</td>${rk.map(c => listCell(c.risks)).join("")}</tr>`);
-      rows.push(`<tr><td class="metric">若要面，必问</td>${rk.map(c => listCell(c.must_verify)).join("")}</tr>`);
+      const listBlock = (cls, icon, title, arr) => (Array.isArray(arr) && arr.length)
+        ? `<div class="ps-block ${cls}"><div class="ps-block-title">${icon} ${title}</div><ul>${arr.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul></div>` : "";
+      const cards = rk.map((c, i) => {
+        const fit = c.fit_score != null ? Math.max(0, Math.min(100, Number(c.fit_score) || 0)) : null;
+        return `<div class="ps-card${i === 0 ? " is-top" : ""}">
+          <div class="ps-card-head">
+            <div class="ps-rank">${c.priority || (i + 1)}</div>
+            <div class="ps-name">${escapeHtml(c.name || "")}</div>
+            <span class="level-pill ${recommendPillClass(c.recommend)}">${escapeHtml(c.recommend || "—")}</span>
+          </div>
+          <div class="ps-fit"><span>匹配度</span><div class="ps-fit-bar"><span style="width:${fit == null ? 0 : fit}%"></span></div><span class="ps-fit-num">${fit == null ? "—" : fit}</span></div>
+          ${c.one_liner ? `<div class="ps-oneliner">${escapeHtml(c.one_liner)}</div>` : ""}
+          ${listBlock("highlight", "✓", "亮点", c.highlights)}
+          ${listBlock("risk", "⚠", "风险 / 疑点", c.risks)}
+          ${listBlock("verify", "❓", "若要面，必问", c.must_verify)}
+        </div>`;
+      }).join("");
       const summary = data.summary ? `<div class="cmp-summary">🧭 ${escapeHtml(data.summary)}</div>` : "";
-      tableHtml = `${summary}<table class="cmp-table">${head}${rows.join("")}</table><div class="step-hint" style="text-align:left;margin:8px 0 18px;">表格按建议优先级排序（#1 = 最该优先面）。绿色为匹配度最高者。以下为完整分析。</div>`;
+      tableHtml = `${summary}<div class="ps-grid">${cards}</div><div class="step-hint" style="text-align:left;margin:8px 0 18px;">按建议优先级排序（#1 = 最该优先面），蓝色为首选。卡片自适应排版，候选人再多也不会溢出。以下为完整分析。</div>`;
     }
-    container.innerHTML = tableHtml + '<div class="output-content" id="preCmpReport" style="box-shadow:none;padding:0;"></div>';
+    const toolbar = (tableHtml || body)
+      ? '<div class="ps-toolbar"><button class="btn" onclick="exportPreScreenPdf()">📄 导出对比 PDF</button></div>'
+      : "";
+    container.innerHTML = toolbar + tableHtml + '<div class="output-content" id="preCmpReport" style="box-shadow:none;padding:0;"></div>';
     if (body) renderReport(container.querySelector("#preCmpReport"), body);
+  }
+  function exportPreScreenPdf() {
+    const result = document.getElementById("cmpResult");
+    if (!result || !result.querySelector(".ps-grid, .output-content")) {
+      showError("请先生成预筛对比结果，再导出 PDF。");
+      return;
+    }
+    const clone = result.cloneNode(true);
+    clone.querySelectorAll(".ps-toolbar").forEach(n => n.remove());
+    const title = lastPreScreenPosition ? `面试前预筛对比：${escapeHtml(lastPreScreenPosition)}` : "面试前预筛对比";
+    const printArea = document.getElementById("printArea");
+    printArea.innerHTML = `<section class="print-report"><div class="print-cover"><h1>${title}</h1><div class="print-meta">CEO 面试副驾驶 · ${escapeHtml(currentDate)}</div></div>${clone.innerHTML}</section>`;
+    document.body.classList.add("printing");
+    const previousTitle = document.title;
+    document.title = lastPreScreenPosition ? `预筛对比_${lastPreScreenPosition}` : "面试前预筛对比";
+    setTimeout(() => {
+      window.print();
+      document.title = previousTitle;
+      document.body.classList.remove("printing");
+      printArea.innerHTML = "";
+    }, 120);
   }
   function runCompare() {
     const ids = Array.from(document.querySelectorAll(".cmp-chk:checked")).map(c => c.value);
@@ -2175,7 +2234,7 @@
     rows.push(`<tr><td class="metric">核心原因</td>${recs.map(r => `<td>${escapeHtml(r.scorecard.core_reason || "")}</td>`).join("")}</tr>`);
     rows.push(`<tr><td class="metric">最大风险</td>${recs.map(r => `<td>${escapeHtml(r.scorecard.biggest_risk || "")}</td>`).join("")}</tr>`);
     rows.push(`<tr><td class="metric">建议动作</td>${recs.map(r => `<td>${escapeHtml(r.scorecard.recommended_action || "")}</td>`).join("")}</tr>`);
-    result.innerHTML = `<table class="cmp-table">${head}${rows.join("")}</table><div class="step-hint" style="text-align:left;margin-top:8px;">绿色高亮为该维度得分最高者。</div>`;
+    result.innerHTML = `<div class="cmp-wrap"><table class="cmp-table">${head}${rows.join("")}</table></div><div class="step-hint" style="text-align:left;margin-top:8px;">绿色高亮为该维度得分最高者。候选人较多时可左右滑动查看，首列与表头会固定。</div>`;
   }
 
   // ===== UI v2：分区折叠 + 候选人切换条 =====
