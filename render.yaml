@@ -13,7 +13,7 @@ services:
       - key: OPENROUTER_MODEL
         value: anthropic/claude-sonnet-4.5
       - key: MAX_TOKENS
-        value: "12000"
+        value: "9000"
       - key: MAX_CONTINUATIONS
         value: "2"
       - key: LLM_TIMEOUT
