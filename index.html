@@ -415,6 +415,7 @@
       <button id="historyBtn" type="button">📚 历史记录</button>
       <button id="compareBtn" type="button">📊 候选人对比</button>
       <button id="batchTopBtn" type="button">📦 批量分析</button>
+      <button id="usageBtn" type="button" onclick="openUsageModal()">💰 Token 用量</button>
       <input id="importFiles" type="file" accept=".md,.markdown,.json" multiple style="display:none;">
       <input id="importFolder" type="file" accept=".md,.markdown,.json" multiple webkitdirectory style="display:none;">
     </div>
@@ -501,6 +502,14 @@
   <div class="modal">
     <div class="modal-head"><h3>📊 同岗位候选人对比</h3><button class="modal-close" data-close>✕</button></div>
     <div class="modal-body" id="compareBody"></div>
+  </div>
+</div>
+<div class="modal-mask" id="usageModal">
+  <div class="modal">
+    <div class="modal-head"><h3>💰 Token 用量统计（OpenRouter）</h3><button class="modal-close" data-close>✕</button></div>
+    <div class="modal-body" id="usageBody">
+      <div class="pending-card"><div class="pending-icon"><div class="spinner"></div></div><div><div class="pending-title">加载中…</div><div class="pending-desc">正在读取本地用量日志</div></div></div>
+    </div>
   </div>
 </div>
 <div class="print-area" id="printArea"></div>
@@ -2333,6 +2342,132 @@
   renderCandSwitch();
   // 从服务端存档读回历史（关机/升级后仍可恢复）
   loadArchiveFromServer();
+
+  // ===== Token 用量统计 =====
+  function openUsageModal() {
+    const modal = document.getElementById("usageModal");
+    modal.classList.add("open");
+    renderUsage();
+  }
+  function closeUsageModal() {
+    document.getElementById("usageModal").classList.remove("open");
+  }
+  document.querySelector("#usageModal [data-close]").addEventListener("click", closeUsageModal);
+
+  function _renderUsageTable(summary, total, title, color) {
+    const rows = summary.map(d => `
+      <tr>
+        <td>${d.date}</td>
+        <td style="text-align:center">${d.calls}</td>
+        <td style="text-align:right">${d.prompt_tokens.toLocaleString()}</td>
+        <td style="text-align:right">${d.completion_tokens.toLocaleString()}</td>
+        <td style="text-align:right;font-weight:700">${d.total_tokens.toLocaleString()}</td>
+        <td style="text-align:right;color:#c0392b;font-weight:700">$${d.cost.toFixed(4)}</td>
+      </tr>
+    `).join("");
+    return `
+      <h4 style="margin:18px 0 10px;font-size:15px;color:${color}">${title}</h4>
+      <div class="cmp-wrap">
+        <table class="cmp-table">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th style="text-align:center">调用次数</th>
+              <th style="text-align:right">输入 Token</th>
+              <th style="text-align:right">输出 Token</th>
+              <th style="text-align:right">总计 Token</th>
+              <th style="text-align:right">预估费用</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows || '<tr><td colspan="6" style="text-align:center;color:#95a5a6">暂无记录</td></tr>'}
+            <tr style="background:#f5f7fa;font-weight:700">
+              <td>合计</td>
+              <td style="text-align:center">${total.calls}</td>
+              <td style="text-align:right">${total.prompt_tokens.toLocaleString()}</td>
+              <td style="text-align:right">${total.completion_tokens.toLocaleString()}</td>
+              <td style="text-align:right">${total.total_tokens.toLocaleString()}</td>
+              <td style="text-align:right;color:#c0392b">$${total.cost.toFixed(4)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async function renderUsage() {
+    const body = document.getElementById("usageBody");
+    body.innerHTML = '<div class="pending-card"><div class="pending-icon"><div class="spinner"></div></div><div><div class="pending-title">加载中…</div><div class="pending-desc">正在读取本地用量日志</div></div></div>';
+    try {
+      const res = await fetch("/api/usage?days=7");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "加载失败");
+      const or = data.openrouter;
+      const ide = data.ide;
+      const comb = data.combined;
+      body.innerHTML = `
+        <div style="margin-bottom:12px;font-size:13px;color:#7f8c8d">
+          统计范围：最近 ${data.days} 天
+        </div>
+        ${_renderUsageTable(or.summary, or.total, "🌐 OpenRouter（你的项目代码调用）", "#2563eb")}
+        ${_renderUsageTable(ide.summary, ide.total, "💻 IDE 用量（Windsurf / Devin / Cursor 等）", "#7c3aed")}
+        <div style="margin:20px 0 10px;padding:14px 16px;background:linear-gradient(135deg,#f0faf4,#eef2ff);border:1px solid #c8e6c9;border-radius:12px;">
+          <div style="font-size:15px;font-weight:800;color:#1b5e20;margin-bottom:6px">📊 两者加总</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:13px">
+            <div><div style="color:#7f8c8d">调用次数</div><div style="font-size:18px;font-weight:800">${comb.total.calls}</div></div>
+            <div><div style="color:#7f8c8d">总 Token</div><div style="font-size:18px;font-weight:800">${comb.total.total_tokens.toLocaleString()}</div></div>
+            <div><div style="color:#7f8c8d">预估费用</div><div style="font-size:18px;font-weight:800;color:#c0392b">$${comb.total.cost.toFixed(4)}</div></div>
+          </div>
+        </div>
+        <div style="margin-top:14px;font-size:12px;color:#95a5a6;line-height:1.6">
+          · OpenRouter 费用按 Claude Opus 4.8 参考价估算（Input $5/MTok，Output $25/MTok），实际扣费以 OpenRouter 账单为准。<br>
+          · IDE 用量需手动导入（见下方表单）或使用 TokScale 脚本自动导入。<br>
+          · 若某部分为空，说明该部分从添加功能后尚未产生记录。
+        </div>
+        <div style="margin-top:22px;padding:16px;border:1px dashed #cbd3dc;border-radius:12px;background:#fafbfc">
+          <div style="font-size:14px;font-weight:700;margin-bottom:10px">➕ 手动补充 IDE 用量</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div><label style="font-size:12px;color:#7f8c8d">日期</label><input type="date" id="ideDate" style="width:100%;padding:8px;border:1px solid #dde2e8;border-radius:8px"></div>
+            <div><label style="font-size:12px;color:#7f8c8d">输入 Token</label><input type="number" id="idePrompt" placeholder="0" style="width:100%;padding:8px;border:1px solid #dde2e8;border-radius:8px"></div>
+            <div><label style="font-size:12px;color:#7f8c8d">输出 Token</label><input type="number" id="ideCompletion" placeholder="0" style="width:100%;padding:8px;border:1px solid #dde2e8;border-radius:8px"></div>
+            <div><label style="font-size:12px;color:#7f8c8d">预估费用 ($)</label><input type="number" id="ideCost" placeholder="0" step="0.0001" style="width:100%;padding:8px;border:1px solid #dde2e8;border-radius:8px"></div>
+          </div>
+          <div><label style="font-size:12px;color:#7f8c8d">备注（如 Windsurf / Devin / Cursor）</label><input type="text" id="ideNote" placeholder="可选" style="width:100%;padding:8px;border:1px solid #dde2e8;border-radius:8px;margin-bottom:8px"></div>
+          <button class="btn" type="button" onclick="submitIdeUsage()" style="width:auto;padding:8px 18px;font-size:13px">💾 导入这笔 IDE 用量</button>
+          <div id="ideUsageMsg" style="margin-top:6px;font-size:12px;height:18px"></div>
+        </div>
+      `;
+      document.getElementById("ideDate").value = new Date().toISOString().slice(0, 10);
+    } catch (e) {
+      body.innerHTML = '<div class="error">加载用量失败：' + escapeHtml(e.message) + '</div>';
+    }
+  }
+
+  async function submitIdeUsage() {
+    const msg = document.getElementById("ideUsageMsg");
+    const payload = {
+      date: document.getElementById("ideDate").value,
+      prompt_tokens: parseInt(document.getElementById("idePrompt").value) || 0,
+      completion_tokens: parseInt(document.getElementById("ideCompletion").value) || 0,
+      cost: parseFloat(document.getElementById("ideCost").value) || 0,
+      note: document.getElementById("ideNote").value,
+    };
+    payload.total_tokens = payload.prompt_tokens + payload.completion_tokens;
+    try {
+      const res = await fetch("/api/ide_usage", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.ok) {
+        msg.style.color = "#27ae60";
+        msg.textContent = "✓ 导入成功，刷新统计中…";
+        renderUsage();
+      } else {
+        throw new Error(data.error || "导入失败");
+      }
+    } catch (e) {
+      msg.style.color = "#c0392b";
+      msg.textContent = "✗ " + e.message;
+    }
+  }
 </script>
 </body>
 </html>

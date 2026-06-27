@@ -3,7 +3,7 @@ import os
 
 API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 API_BASE = os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
-MODEL = os.getenv("OPENROUTER_MODEL", "anthropic/claude-sonnet-4.5")
+MODEL = os.getenv("OPENROUTER_MODEL", "anthropic/claude-opus-4.8")
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "16000"))
 LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "240"))
 MAX_CONTINUATIONS = int(os.getenv("MAX_CONTINUATIONS", "1"))

@@ -5,9 +5,10 @@ import json
 import time
 import os
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from functools import wraps
+from collections import defaultdict
 from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, Response, stream_with_context
 from flask_cors import CORS
 import pdfplumber
@@ -215,15 +216,42 @@ def generate_formal_jd(raw_description):
     return call_llm(jd_prompt(raw_description))
 
 
+USAGE_LOG_PATH = Path("outputs") / "usage_log.json"
+
+
 def log_usage(usage):
     if not usage:
         return
     prompt_tokens = getattr(usage, "prompt_tokens", 0)
     completion_tokens = getattr(usage, "completion_tokens", 0)
     total_tokens = getattr(usage, "total_tokens", 0)
-    # Claude Sonnet 4.x 参考价: Input $3/MTok, Output $15/MTok
-    cost = prompt_tokens * 0.000003 + completion_tokens * 0.000015
+    # Claude Opus 4.8 参考价: Input $5/MTok, Output $25/MTok
+    cost = prompt_tokens * 0.000005 + completion_tokens * 0.000025
     print(f"\n[Token Usage] 输入: {prompt_tokens} | 输出: {completion_tokens} | 总计: {total_tokens} | 预估费用: ${cost:.4f}\n")
+    # 持久化
+    try:
+        records = []
+        if USAGE_LOG_PATH.exists():
+            records = json.loads(USAGE_LOG_PATH.read_text(encoding="utf-8"))
+            if not isinstance(records, list):
+                records = []
+        record = {
+            "timestamp": datetime.now().isoformat(),
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "source": "openrouter",
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+            "cost": round(cost, 6),
+            "model": getattr(config, "MODEL", "unknown"),
+        }
+        records.append(record)
+        USAGE_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = USAGE_LOG_PATH.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(USAGE_LOG_PATH)
+    except Exception as e:
+        print(f"[Usage Log Error] {e}")
 
 
 def get_client():
@@ -324,7 +352,7 @@ def friendly_llm_error(msg):
 
 
 def _chat_stream(messages):
-    """逐块产出 (delta_text, finish_reason)；流结束时 finish_reason 非空。"""
+    """逐块产出 (delta_text, finish_reason, usage)；流结束时 finish_reason 非空，usage 可能为 None。"""
     stream = get_client().chat.completions.create(
         model=config.MODEL,
         max_tokens=config.MAX_TOKENS,
@@ -336,16 +364,19 @@ def _chat_stream(messages):
         },
     )
     finish = None
+    usage = None
     for chunk in stream:
+        if getattr(chunk, "usage", None):
+            usage = chunk.usage
         if not getattr(chunk, "choices", None):
             continue
         ch = chunk.choices[0]
         delta = getattr(ch.delta, "content", None) if getattr(ch, "delta", None) else None
         if delta:
-            yield delta, None
+            yield delta, None, None
         if getattr(ch, "finish_reason", None):
             finish = ch.finish_reason
-    yield None, finish or "stop"
+    yield None, finish or "stop", usage
 
 
 def sse_pack(obj):
@@ -391,12 +422,16 @@ def stream_llm_sse(prompt, on_done=None):
             print(f"[STREAM] start prompt_chars={len(real_prompt)} model={config.MODEL}")
             while True:
                 finish = None
-                for delta, fr in _chat_stream(messages):
+                last_usage = None
+                for delta, fr, usage in _chat_stream(messages):
                     if delta:
                         full.append(delta)
                         yield sse_pack({"delta": delta})
                     if fr is not None:
                         finish = fr
+                        last_usage = usage
+                if last_usage:
+                    log_usage(last_usage)
                 if finish == "length" and cont < max_cont:
                     cont += 1
                     print(f"[STREAM] 截断，自动续写 第 {cont} 次")
@@ -588,6 +623,132 @@ def save_archive(records):
     tmp = ARCHIVE_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(ARCHIVE_PATH)
+
+
+def _load_usage_records():
+    if not USAGE_LOG_PATH.exists():
+        return []
+    try:
+        data = json.loads(USAGE_LOG_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def _summarize_by_date(records, days, source_filter=None):
+    daily = defaultdict(lambda: {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "cost": 0.0})
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    for r in records:
+        if r.get("date", "") < cutoff:
+            continue
+        if source_filter and r.get("source") != source_filter:
+            continue
+        d = r["date"]
+        daily[d]["calls"] += 1
+        daily[d]["prompt_tokens"] += r.get("prompt_tokens", 0)
+        daily[d]["completion_tokens"] += r.get("completion_tokens", 0)
+        daily[d]["total_tokens"] += r.get("total_tokens", 0)
+        daily[d]["cost"] += r.get("cost", 0)
+    summary = []
+    for date in sorted(daily.keys(), reverse=True):
+        summary.append({
+            "date": date,
+            "calls": daily[date]["calls"],
+            "prompt_tokens": daily[date]["prompt_tokens"],
+            "completion_tokens": daily[date]["completion_tokens"],
+            "total_tokens": daily[date]["total_tokens"],
+            "cost": round(daily[date]["cost"], 4),
+        })
+    total = {
+        "calls": sum(d["calls"] for d in summary),
+        "prompt_tokens": sum(d["prompt_tokens"] for d in summary),
+        "completion_tokens": sum(d["completion_tokens"] for d in summary),
+        "total_tokens": sum(d["total_tokens"] for d in summary),
+        "cost": round(sum(d["cost"] for d in summary), 4),
+    }
+    return summary, total
+
+
+def _merge_summaries(summaries_list):
+    """把多组按天分组的 summary 合并成一组 combined。"""
+    daily = defaultdict(lambda: {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "cost": 0.0})
+    for summary in summaries_list:
+        for item in summary:
+            d = daily[item["date"]]
+            d["calls"] += item["calls"]
+            d["prompt_tokens"] += item["prompt_tokens"]
+            d["completion_tokens"] += item["completion_tokens"]
+            d["total_tokens"] += item["total_tokens"]
+            d["cost"] += item["cost"]
+    merged = []
+    for date in sorted(daily.keys(), reverse=True):
+        merged.append({
+            "date": date,
+            "calls": daily[date]["calls"],
+            "prompt_tokens": daily[date]["prompt_tokens"],
+            "completion_tokens": daily[date]["completion_tokens"],
+            "total_tokens": daily[date]["total_tokens"],
+            "cost": round(daily[date]["cost"], 4),
+        })
+    total = {
+        "calls": sum(d["calls"] for d in merged),
+        "prompt_tokens": sum(d["prompt_tokens"] for d in merged),
+        "completion_tokens": sum(d["completion_tokens"] for d in merged),
+        "total_tokens": sum(d["total_tokens"] for d in merged),
+        "cost": round(sum(d["cost"] for d in merged), 4),
+    }
+    return merged, total
+
+
+@app.route("/api/usage", methods=["GET"])
+@login_required
+def api_usage():
+    days = request.args.get("days", 7, type=int)
+    days = max(1, min(days, 90))
+    records = _load_usage_records()
+    or_summary, or_total = _summarize_by_date(records, days, "openrouter")
+    ide_summary, ide_total = _summarize_by_date(records, days, "ide")
+    combined, combined_total = _merge_summaries([or_summary, ide_summary])
+    return jsonify({
+        "days": days,
+        "openrouter": {"summary": or_summary, "total": or_total},
+        "ide": {"summary": ide_summary, "total": ide_total},
+        "combined": {"summary": combined, "total": combined_total},
+    })
+
+
+@app.route("/api/ide_usage", methods=["POST"])
+@login_required
+def api_ide_usage():
+    """手动或通过脚本导入 IDE（Windsurf / Devin / Cursor 等）用量。
+    Body JSON: {"date":"2026-06-24","prompt_tokens":1234,"completion_tokens":567,"cost":0.0123} 等
+    """
+    data = request.get_json(silent=True) or {}
+    date_str = data.get("date") or datetime.now().strftime("%Y-%m-%d")
+    prompt_tokens = int(data.get("prompt_tokens", 0))
+    completion_tokens = int(data.get("completion_tokens", 0))
+    total_tokens = int(data.get("total_tokens", prompt_tokens + completion_tokens))
+    cost = float(data.get("cost", 0))
+    try:
+        records = _load_usage_records()
+        records.append({
+            "timestamp": datetime.now().isoformat(),
+            "date": date_str,
+            "source": "ide",
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+            "cost": round(cost, 6),
+            "model": data.get("model", "unknown"),
+            "note": data.get("note", ""),
+        })
+        USAGE_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = USAGE_LOG_PATH.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(USAGE_LOG_PATH)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/archive", methods=["GET"])
